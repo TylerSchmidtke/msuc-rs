@@ -1,0 +1,19 @@
+[package]
+name = "msuc"
+description = "A client library for the Microsoft Update Catalog"
+repository = "https://github.com/TylerSchmidtke/msuc-rs"
+keywords = ["microsoft", "update", "catalog"]
+license = "MIT"
+readme = "README.md"
+version = "0.0.1"
+edition = "2021"
+authors = ["Tyler Schmidtke <tyler@schmidtke.dev>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11.20", features = ["json"] }
+serde = { version = "1.0.188", features = ["derive"] }
+thiserror = { version = "1.0.48", features = [] }
+scraper = "0.17"
+chrono = "0.4.31"
