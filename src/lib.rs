@@ -22,6 +22,8 @@ pub type SearchResults = Vec<Update>;
 pub struct Client {
     client: reqwest::Client,
     search_url: String,
+    // TODO: Implement parsing of the update details page
+    #[allow(dead_code)]
     update_url: String,
 }
 
@@ -66,7 +68,7 @@ impl Client {
     ///
     /// ```
     /// use msuc::Client as MsucClient;
-    /// let msuc_client = MsucClient::new().expect("Failed to create MSUC client");    ///
+    /// let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
     /// let resp = msuc_client.search("KB5030524").await.expect("Failed to search");
     /// for update in resp.unwrap().iter() {
     ///   println!("Found update: {}", update.title);
