@@ -2,6 +2,7 @@
 name = "msuc"
 description = "A client library for the Microsoft Update Catalog"
 repository = "https://github.com/TylerSchmidtke/msuc-rs"
+homepage = "https://github.com/TylerSchmidtke/msuc-rs"
 keywords = ["microsoft", "update", "catalog"]
 license = "MIT"
 readme = "README.md"
