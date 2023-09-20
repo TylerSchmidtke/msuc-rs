@@ -2,6 +2,7 @@ use std::num::ParseIntError;
 use scraper::{Html, Selector};
 use thiserror::Error;
 
+/// `Update` represents a single update from the Microsoft Update Catalog.
 #[derive(Eq, PartialEq, Debug)]
 pub struct Update {
     pub title: String,
@@ -14,8 +15,10 @@ pub struct Update {
     pub size: u64,
 }
 
+/// SearchResults represents a collection of updates returned from a search.
 pub type SearchResults = Vec<Update>;
 
+/// `Client` represents a client for the Microsoft Update Catalog.
 pub struct Client {
     client: reqwest::Client,
     search_url: String,
@@ -23,6 +26,9 @@ pub struct Client {
 }
 
 impl Default for Client {
+    /// `default` creates a new MSUC `Client` with default values. It will panic if
+    /// there is an error creating the client. The `new` method should be used instead which allows
+    /// for handling the error.
     fn default() -> Client {
         Client::new().expect("Failed to create default client")
     }
