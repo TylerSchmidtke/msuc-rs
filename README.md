@@ -8,4 +8,4 @@ See the TODO section for what's planned.
 ## TODO
 - [x] Search
 - [ ] Supersedence parsing
-- [ ] Non-async support
+- [x] Non-async support
