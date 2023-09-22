@@ -2,6 +2,8 @@ use std::num::ParseIntError;
 use scraper::{Html, Selector};
 use thiserror::Error;
 
+const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// `Update` represents a single update from the Microsoft Update Catalog.
 #[derive(Eq, PartialEq, Debug)]
 pub struct Update {
@@ -20,6 +22,9 @@ pub type SearchResults = Vec<Update>;
 
 /// `Client` represents a client for the Microsoft Update Catalog.
 pub struct Client {
+    #[cfg(feature = "blocking")]
+    client: reqwest::blocking::Client,
+    #[cfg(not(feature = "blocking"))]
     client: reqwest::Client,
     search_url: String,
     // TODO: Implement parsing of the update details page
@@ -47,10 +52,17 @@ impl Client {
     /// let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
     /// ```
     pub fn new() -> Result<Self, Error> {
-        let client = reqwest::Client::builder()
-            .user_agent("msuc-rs-rs/0.0.1")
+        #[cfg(not(feature = "blocking"))]
+            let client = reqwest::Client::builder()
+            .user_agent(format!("msuc-rs/{}", LIB_VERSION))
             .build()
             .map_err(Error::ClientError)?;
+        #[cfg(feature = "blocking")]
+        let client = reqwest::blocking::Client::builder()
+            .user_agent(format!("msuc-rs/{}", LIB_VERSION))
+            .build()
+            .map_err(Error::ClientError)?;
+
         Ok(Client {
             client,
             search_url: String::from("https://www.catalog.update.microsoft.com/Search.aspx?q="),
@@ -68,12 +80,17 @@ impl Client {
     ///
     /// ```
     /// use msuc::Client as MsucClient;
-    /// let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
-    /// let resp = msuc_client.search("KB5030524").await.expect("Failed to search");
-    /// for update in resp.unwrap().iter() {
-    ///   println!("Found update: {}", update.title);
-    /// }
+    /// use tokio_test;
+    ///
+    /// tokio_test::block_on(async {
+    ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
+    ///     let resp = msuc_client.search("KB5030524").await.expect("Failed to search");
+    ///     for update in resp.unwrap().iter() {
+    ///       println!("Found update: {}", update.title);
+    ///     }
+    /// });
     /// ```
+    #[cfg(not(feature = "blocking"))]
     pub async fn search(&self, kb: &str) -> Result<Option<SearchResults>, Error> {
         let url = format!("{}{}", self.search_url, kb);
         let resp = self.client
@@ -82,6 +99,20 @@ impl Client {
             .await
             .map_err(Error::ClientError)?;
         let html = resp.text().await.map_err(Error::ClientError)?;
+        parse_search_results(&html
+        ).map_err(|e| Error::SearchError(
+            format!("Failed to parse search results for {}: {}", kb, e)
+        ))
+    }
+
+    #[cfg(feature = "blocking")]
+    pub fn search(&self, kb: &str) -> Result<Option<SearchResults>, Error> {
+        let url = format!("{}{}", self.search_url, kb);
+        let resp = self.client
+            .get(url.as_str())
+            .send()
+            .map_err(Error::ClientError)?;
+        let html = resp.text().map_err(Error::ClientError)?;
         parse_search_results(&html
         ).map_err(|e| Error::SearchError(
             format!("Failed to parse search results for {}: {}", kb, e)
