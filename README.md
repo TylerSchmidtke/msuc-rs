@@ -2,10 +2,8 @@
 
 ![crates.io](https://img.shields.io/crates/v/msuc?link=https://crates.io/crates/msuc)
 
-A work-in-progress client for the Microsoft Update Catalog.
-See the TODO section for what's planned.
+A rust client for the [Microsoft Update Catalog](https://www.catalog.update.microsoft.com/Home.aspx).
 
-## TODO
-- [x] Search
-- [ ] Supersedence parsing
-- [x] Non-async support
+## Documentation
+
+See the [docs.rs](https://docs.rs/msuc) page for documentation.
