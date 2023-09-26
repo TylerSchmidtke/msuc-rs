@@ -7,3 +7,7 @@ A rust client for the [Microsoft Update Catalog](https://www.catalog.update.micr
 ## Documentation
 
 See the [docs.rs](https://docs.rs/msuc) page for documentation.
+
+## TODO
+
+[ ] Support pagination for searches - currently only the first page of results is returned.
