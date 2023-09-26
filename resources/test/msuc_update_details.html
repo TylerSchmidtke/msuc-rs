@@ -1,0 +1,867 @@
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" html="" lang="en">
+<head id="Head1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7">
+    <link rel="stylesheet" type="text/css" href="Style/catalog.css">
+    <title>
+        Microsoft Update Catalog
+    </title>
+    <script type="text/javascript">
+        function supressError(message, url, line) {
+            var re = /^function\s*([^(]*)\s*\(([^)]*)\)/;
+            var matches = null;
+            if (arguments.caller != null) {
+                matches = re.exec(arguments.caller.callee);
+            }
+            var argArray = new Array();
+            var fName = 'unknown';
+            if (matches) {
+                if (matches[1] && matches[1].toString().length > 0)
+                    fName = matches[1].toString();
+                if (matches[2] && matches[2].toString().length > 0) {
+                    var cleanMatches = new String(matches[2]).replace(/\s*/g, '');
+                    argArray = cleanMatches.split(',');
+                }
+            }
+            var args = (argArray.length > 0) ? '' : 'none';
+            for (var i = 0; i < argArray.length; i++) {
+                args += ((args == '') ? '' : ', ') + argArray[i] + '(' + typeof (arguments.caller[i]) + '):';
+                args += arguments.caller[i];
+            }
+            if (typeof (logger) != typeof (undefined) && logger != null)
+                logger.log(logger.logLevelFatal, 'JavaScript Error: MESSAGE=' + message + '. URL=' + url + '. LINE=' + line + '. FUNCTION_NAME=' + fName + '. ARGUMENTS=' + args);
+            else if (typeof (console) != typeof (undefined) && console != null)
+                console.log('JavaScript Error: MESSAGE=' + message + '. URL=' + url + '. LINE=' + line + '. FUNCTION_NAME=' + fName + '. ARGUMENTS=' + args);
+            var location = window.location.href.toLowerCase();
+            if (location.indexOf('ErrorInline.aspx'.toLowerCase()) == -1)
+                window.location.href = 'ErrorInline.aspx' + '?id=' + Microsoft.UpdateServices.Catalog.Constants.ErrorScriptError;
+            return true;
+        }
+
+        window.onerror = supressError;
+    </script>
+</head>
+<body class="mainBody" id="ltr" data-new-gr-c-s-check-loaded="14.1126.0" data-gr-ext-installed="">
+<form method="post" action="./ScopedViewInline.aspx?updateid=1b0b70c0-191e-42f6-8808-c1b50deacb3b"
+      id="scopedViewInline">
+    <div class="aspNetHidden">
+        <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+        <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+        <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE"
+               value="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">
+    </div>
+
+    <script type="text/javascript">
+        //<![CDATA[
+        var theForm = document.forms['scopedViewInline'];
+        if (!theForm) {
+            theForm = document.scopedViewInline;
+        }
+
+        function __doPostBack(eventTarget, eventArgument) {
+            if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+                theForm.__EVENTTARGET.value = eventTarget;
+                theForm.__EVENTARGUMENT.value = eventArgument;
+                theForm.submit();
+            }
+        }
+
+        //]]>
+    </script>
+
+
+    <script src="/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZHxxdeJUrNoPJt6lxqvRW6Pzs10y1yT0YV6OgZaeZ6xoRcBn9JsAyiMny6iPkJnw0A2&amp;t=638295299858107416"
+            type="text/javascript"></script>
+
+
+    <script src="/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvrkdqm_yxvjqkpYsU8np-a1hZKqNHieny7c8n0uFLH4lzuKZ2_3k4RIn1u-oD0Hipvv6bGQQXy6aHGv0t5q6qO1D0p3K1XQnZtU9otznsIz2SPmyOXUpjM0fXDhvEXkcl622PtyhpuYTTG0Cu-XpPYo1&amp;t=5d0a842b"
+            type="text/javascript"></script>
+    <script src="/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OOJ-LUvz3VxVAyp7Uzq5cGa7mkDN5Xh77gOyzVbjX9jsT4Xw3w4ZL5jejcL2YFsfttusLZ_-e8blE9iv6Ud8tM0VJQL6zbNjC-bnxcSPwzKLzZ5_L4Rh4XRf_if0fcOmIyTPM9R7X2Pu2Q--VBmrvPM1&amp;t=5d0a842b"
+            type="text/javascript"></script>
+    <script src="SiteConstants.aspx?6" type="text/javascript"></script>
+    <script src="Script/CommonTypes.js?6" type="text/javascript"></script>
+    <script src="Script/DownloadBasket.js?6" type="text/javascript"></script>
+    <script src="Script/MasterComponents.js?6" type="text/javascript"></script>
+    <script src="Script/ScopedView.js?6" type="text/javascript"></script>
+    <script src="Script/HelperMethods.js?6" type="text/javascript"></script>
+    <div class="aspNetHidden">
+
+        <input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="015E8938">
+    </div>
+    <script type="text/javascript" language="javascript">
+        function pageLoad() {
+            pageLoadHelper("true");
+        }
+    </script>
+
+    <div class="inlinePadding">
+        <div id="scopedViewHeaderTitleBox" class="dialogHeader">
+            <span id="scopedViewHeaderTitleResource">Update Details</span>
+        </div>
+
+        <div id="contentSection">
+            <script type="text/javascript">
+                //<![CDATA[
+                Sys.WebForms.PageRequestManager._initialize('ScopedViewHandler$scriptManager', 'scopedViewInline', [], [], [], 90, '');
+                //]]>
+            </script>
+
+
+            <script type="text/javascript" language="javascript">
+                var scopedViewComponent;
+                var binarySize = new Array();
+
+                ///<summary>
+                ///     This function is called automatically by ASP.NET AJAX framework when the page finishes loading
+                ///</summary>
+                function pageLoadHelper(details) {
+                    var downloadButton = $get('downloadButton');
+                    var uId = '1b0b70c0-191e-42f6-8808-c1b50deacb3b';
+                    var addToBasketLabel = 'Add to Basket';
+                    var removeFromBasketLabel = 'Remove from Basket';
+                    var sizeContainer = $get('ScopedViewHandler$size'.replace(/\$/g, '_'));
+                    var updateBasketLabel = 'Update Basket';
+                    if (details != "true") {
+                        // Get the MasterPageContext object
+                        var masterPageContext = createMasterPageComponents(true);
+                        if (masterPageContext == null) {
+                            return;
+                        }
+
+                        if (typeof (downloadButton) != typeof (Microsoft.UpdateServices.Catalog.Constants.UndefinedValue)
+                            && downloadButton != null) {
+                            downloadButton.value = 'Download Now';
+                            $addHandler(downloadButton, "click", function () {
+                                //pass in the updateid, size and languages info as language info is needed to know what binaries to downlaod and
+                                //language info and size info is needed to add the update back to basket if the update is failed or cancled in download process
+                                var updateIDLang = uId
+                                //if all the check box is present then the language selection is present
+                                var allCheckbox = $get('allLan')
+                                if (typeof (allCheckbox) != typeof (Microsoft.UpdateServices.Catalog.Constants.UndefinedValue) && allCheckbox != null) {
+                                    updateIDLang += Microsoft.UpdateServices.Catalog.Constants.UpdateInfoSeparator + scopedViewComponent.getTotalSize() + scopedViewComponent.getLangSelected();
+                                }
+                                //serialize the update selection so on the server this can be de-serialized uing Jason
+                                var serializedUpdateInfo = Sys.Serialization.JavaScriptSerializer.serialize([new Microsoft.UpdateServices.Catalog.Update(updateIDLang)]);
+                                masterPageContext.get_basketForm().updateIDs.value = serializedUpdateInfo;
+
+                                var qs = new Microsoft.UpdateServices.Catalog.QueryString(window.location.search);
+                                var downloadDialog = window.open(Microsoft.UpdateServices.Catalog.Constants.PageDownloadDialog + qs.appendErrorsQS("?scopedview=true"),
+                                    Microsoft.UpdateServices.Catalog.Constants.EmptyString,
+                                    'height=460,width=640,status=no,toolbar=no,menubar=no,location=no,scrollbars=yes,resizable=1 ');
+                                if (downloadDialog == null) {
+                                    popupInfo.style.display = "block";
+                                }
+                            });
+                            downloadButton.style.display = "inline";
+                        }
+                    }
+                    //get all the language elements and attach event to them and build an array to pass to js
+                    var inputElments = languageBox.getElementsByTagName("input");
+                    var languageCheckboxes = new Array();
+                    for (i = 0; i < inputElments.length; i++) {
+                        if (inputElments[i].type == "checkbox" && inputElments[i].id != "allLan") {
+                            languageCheckboxes.push(inputElments[i]);
+                            attachEventToCheckbox(inputElments[i]);
+                        }
+                    }
+                    //add event handler to all language checkbox
+                    var allCheckbox = $get('allLan')
+                    if (typeof (allCheckbox) != typeof (Microsoft.UpdateServices.Catalog.Constants.UndefinedValue) && allCheckbox != null) {
+                        $addHandler(allCheckbox, "click", function () {
+                            scopedViewComponent.allLanguageSelected();
+                        });
+                    }
+
+                    scopedViewComponent = new Microsoft.UpdateServices.Catalog.UI.ScopedView(
+                        $get('contentSection'),
+                        uId,
+                        addToBasketLabel,
+                        removeFromBasketLabel,
+                        $get('overView'),
+                        $get('overviewBox'),
+                        $get('packageDetails'),
+                        $get('packageBox'),
+                        $get('installDetails'),
+                        $get('installBox'),
+                        $get('languageSelection'),
+                        $get('languageBox'),
+                        languageCheckboxes,
+                        "",
+                        sizeContainer,
+                        updateBasketLabel,
+                        allCheckbox,
+                        downloadButton,
+                        binarySize //array of binary size per locale
+                    );
+
+                    $addHandler($get('overView'), 'keydown', TextBox_OnKeyDownOverview);
+                    $addHandler($get('languageSelection'), 'keydown', TextBox_OnKeyDownLanguage);
+                    $addHandler($get('packageDetails'), 'keydown', TextBox_OnKeyDownPackage);
+                    $addHandler($get('installDetails'), 'keydown', TextBox_OnKeyDownDetails);
+
+                    $get('overView').setAttribute("aria-selected", "true");
+                    $get('languageSelection').setAttribute("aria-selected", "false");
+                    $get('installDetails').setAttribute("aria-selected", "false");
+                    $get('packageDetails').setAttribute("aria-selected", "false");
+
+                    $addHandler(overView, "click", function () {
+                        scopedViewComponent.switchTab(1);
+                    });
+                    $addHandler(packageDetails, "click", function () {
+                        scopedViewComponent.switchTab(2);
+                    });
+                    $addHandler(installDetails, "click", function () {
+                        scopedViewComponent.switchTab(3);
+                    });
+                    $addHandler(languageSelection, "click", function () {
+                        scopedViewComponent.switchTab(4);
+                    });
+                    $addHandler(window, "focus", function () {
+                        if (typeof (scopedViewComponent) != typeof (Microsoft.UpdateServices.Catalog.Constants.UndefinedValue)) {
+                            scopedViewComponent.updateLabels("true");
+                        }
+                    });
+                }
+
+                function attachEventToCheckbox(languageCheckbox) {
+                    $addHandler(languageCheckbox, "click", function () {
+                        scopedViewComponent.manageBasketButton();
+                    });
+                }
+
+
+                function TextBox_OnKeyDownOverview(e) {
+                    if (e.keyCode == 39) {
+                        $get('languageSelection').focus();
+                    }
+                }
+
+                function TextBox_OnKeyDownLanguage(e) {
+                    if (e.keyCode == 39) {
+                        $get('packageDetails').focus();
+                    }
+
+                    if (e.keyCode == 37) {
+                        $get('overView').focus();
+
+                    }
+                }
+
+                function TextBox_OnKeyDownPackage(e) {
+                    if (e.keyCode == 39) {
+                        $get('installDetails').focus();
+                    }
+
+                    if (e.keyCode == 37) {
+                        $get('languageSelection').focus();
+                    }
+                }
+
+                function TextBox_OnKeyDownDetails(e) {
+                    if (e.keyCode == 37) {
+                        $get('packageDetails').focus();
+                    }
+                }
+
+                function copyUpdateidToClipboard() {
+                    copyTextToClipboard("1b0b70c0-191e-42f6-8808-c1b50deacb3b");
+                }
+
+
+            </script>
+            <div class="textBottomSpacer labelTitle" id="titleDiv">
+                <span id="ScopedViewHandler_titleText">2023-04 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5025305)</span>
+            </div>
+            <div id="dateDiv" class="textBottomSpacer">
+                <span id="ScopedViewHandler_labelLastModified_Separator" class="labelTitle">Last Modified:</span>
+                <span id="ScopedViewHandler_date">4/25/2023</span>
+            </div>
+            <div id="sizeDiv" class="textBottomSpacer">
+                <span class="labelTitle">Size:</span>
+                <span id="ScopedViewHandler_size">316.2 MB</span>
+            </div>
+            <div id="updateIdDiv" class="textBottomSpacer">
+                <span class="labelTitle">UpdateID:</span>
+                <span id="ScopedViewHandler_UpdateID">1b0b70c0-191e-42f6-8808-c1b50deacb3b</span>
+                <input id="downloadSettingsUpdateidButton" class="flatBlueButtonDownloadFittext focus-only"
+                       type="button" value="Copy" onclick="copyUpdateidToClipboard()">
+            </div>
+            <div id="buttonsDiv">
+                <input id="downloadButton" class="flatBlueButton buttonPadding" type="button" style="display: none;">
+            </div>
+        </div>
+        <div id="popupInfo" class="poupInfoDiv">
+            <table cellpadding="0" cellspacing="0" border="0">
+                <tbody>
+                <tr>
+                    <td valign="top">
+                        <img src="Images/decor_BigInformation.gif">
+                    </td>
+                    <td class="poupInfoText">
+                        <span id="ScopedViewHandler_textPopupBlocked">If you have a pop-up blocker enabled, the Download window might not open. To open the Download window, configure your pop-blocker to allow pop-ups for this Web site.</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="tabSection" role="tablist">
+            <div class="textLeftPadding textTopPadding">
+                <span id="ScopedViewHandler_labelDetails_Separator">Details:</span>
+            </div>
+            <div id="tabContainer">
+                <a href="#Overview" id="overView" aria-selected="false" role="tab" class="tab tabInactive" tabindex="1"><span
+                        id="ScopedViewHandler_labelOverview">Overview</span></a>
+                <a href="#LanguageSelection" id="languageSelection" aria-selected="false" role="tab"
+                   class="tab tabInactive" tabindex="11"><span id="ScopedViewHandler_labelLangSelection">Language Selection</span></a>
+                <a href="#PackageDetails" id="packageDetails" aria-selected="true" role="tab" class="tab tabActive"
+                   tabindex="21"><span id="ScopedViewHandler_labelPkgDetails">Package Details</span></a>
+                <a href="#InstallDetails" id="installDetails" aria-selected="false" role="tab" class="tab tabInactive"
+                   tabindex="31"><span id="ScopedViewHandler_labelInstallDetails">Install Resources</span></a>
+            </div>
+        </div>
+        <div id="tabBody">
+            <div id="overviewBox" style="display: none;">
+                <div id="overviewContentBody" class="tabBodyContentBox">
+                    <table cellpadding="0" cellspacing="0" border="0" width="95%">
+                        <tbody>
+                        <tr>
+                            <td id="overviewLeftBox">
+                                <div id="descDiv" class="textDoubleSpacer">
+                                    <span id="ScopedViewHandler_labelDescription_Separator" class="labelTitle">Description:</span>
+                                    <span id="ScopedViewHandler_desc">Install this update to resolve issues in Windows. For a complete listing of the issues that are included in this update, see the associated Microsoft Knowledge Base article for more information. After you install this item, you may have to restart your computer.</span>
+                                </div>
+
+                                <div id="archDiv">
+                                    <span id="ScopedViewHandler_labelArchitecture_Separator" class="labelTitle">Architecture:</span>
+                                    n/a
+                                </div>
+                                <div id="classificationDiv">
+                                    <span id="ScopedViewHandler_labelClassification_Separator" class="labelTitle">Classification:</span>
+
+                                    Updates
+
+                                </div>
+                                <div id="productsDiv">
+                                    <span id="ScopedViewHandler_labelSupportedProducts_Separator" class="labelTitle">Supported products:</span>
+
+                                    Windows 11
+
+                                </div>
+                                <div id="languagesDiv">
+                                    <span id="ScopedViewHandler_labelSupportedLanguages_Separator" class="labelTitle">Supported languages:</span>
+
+                                    Arabic
+                                    ,
+                                    Bulgarian
+                                    ,
+                                    Czech
+                                    ,
+                                    Danish
+                                    ,
+                                    German
+                                    ,
+                                    Greek
+                                    ,
+                                    English
+                                    ,
+                                    Spanish
+                                    ,
+                                    Estonian
+                                    ,
+                                    Finnish
+                                    ,
+                                    French
+                                    ,
+                                    Hebrew
+                                    ,
+                                    Croatian
+                                    ,
+                                    Hungarian
+                                    ,
+                                    Italian
+                                    ,
+                                    Japanese
+                                    ,
+                                    Korean
+                                    ,
+                                    Lithuanian
+                                    ,
+                                    Latvian
+                                    ,
+                                    Norwegian
+                                    ,
+                                    Dutch
+                                    ,
+                                    Polish
+                                    ,
+                                    Portuguese (Brazil)
+                                    ,
+                                    Portuguese (Portugal)
+                                    ,
+                                    Romanian
+                                    ,
+                                    Russian
+                                    ,
+                                    Slovak
+                                    ,
+                                    Slovenian
+                                    ,
+                                    Serbian (Latin)
+                                    ,
+                                    Swedish
+                                    ,
+                                    Thai
+                                    ,
+                                    Turkish
+                                    ,
+                                    Ukrainian
+                                    ,
+                                    Chinese (Simplified)
+                                    ,
+                                    Chinese (Traditional)
+                                    ,
+                                    all
+
+                                </div>
+                            </td>
+                            <td id="overviewRightBox">
+                                <div id="ScopedViewHandler_SoftwareInfo">
+                                    <div id="securityBullitenDiv">
+                                        <span id="ScopedViewHandler_labelSecurityBulliten_Separator" class="labelTitle">MSRC Number:</span>
+
+                                        n/a
+
+                                    </div>
+                                    <div id="msrcSeverityDiv">
+                                        <span id="ScopedViewHandler_labelMSRCSeverity_Separator" class="labelTitle">MSRC severity:</span>
+                                        <span id="ScopedViewHandler_msrcSeverity">n/a</span>
+                                    </div>
+                                    <div id="kbDiv" class="textDoubleSpacer">
+                                        <span id="ScopedViewHandler_labelKBArticle_Separator" class="labelTitle">KB article numbers:</span>
+
+                                        5025305
+
+                                    </div>
+                                </div>
+
+                                <div id="moreInfoDiv" class="textDoubleSpacer">
+                                    <span id="ScopedViewHandler_labelMoreInfo_Separator" class="labelTitle">More information:</span>
+
+                                    <div>
+                                        <a target="catalogNew" tabindex="2"
+                                           href="https://support.microsoft.com/help/5025305"
+                                           class="contentTextItemSpacerNoBreakLink">
+                                            https://support.microsoft.com/help/5025305
+                                        </a>
+                                    </div>
+
+                                </div>
+                                <div id="suportUrlDiv" class="textDoubleSpacer">
+                                    <span id="ScopedViewHandler_labelSupportUrl_Separator" class="labelTitle">Support Url:</span>
+
+                                    <div>
+                                        <a target="catalogNew" tabindex="3"
+                                           href="https://support.microsoft.com/help/5025305"
+                                           class="contentTextItemSpacerNoBreakLink">
+                                            https://support.microsoft.com/help/5025305
+                                        </a>
+                                    </div>
+
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="packageBox" style="display: block;">
+                <div id="ScopedViewHandler_softwarePackage">
+                    <div class="tabBodyContentBox tabBodyContentBox">
+                        <span id="ScopedViewHandler_labelSupersedingUpdates_Separator" class="labelTitle">This update has been replaced by the following updates:</span>
+
+                        <div id="supersededbyInfo">
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=03423c5a-458d-4cbe-b67e-d47bec7f3fb6">2023-09
+                                    Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5030219)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=10b0cdce-d084-452d-b6a3-318a3ade0a6e">2023-08
+                                    Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5029263)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=1a1ab822-a9e3-4a00-abd5-a4fafbf02982">2023-08
+                                    Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                    (KB5029351)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=1f6417e4-a329-42c4-95e0-fa7d09bb6f90">2023-07
+                                    Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5028185)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=3cf3be77-f086-449f-8ba5-033f605c688a">2023-05
+                                    Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5026372)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=dbf7dc02-70ef-4476-b228-00a130a39ccd">2023-07
+                                    Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                    (KB5028254)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=e0c1bca2-82c9-4eca-b0b2-5c5a507a683a">2023-06
+                                    Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                    (KB5027303)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=eac58b58-fb7d-4cd4-a78a-a39f87e0f232">2023-06
+                                    Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5027231)</a>
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                <a href="ScopedViewInline.aspx?updateid=ec3769c8-2cd5-4e89-a0a3-6e7830c38f6f">2023-05
+                                    Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                    (KB5026446)</a>
+                            </div>
+
+                        </div>
+                        <span id="ScopedViewHandler_labelSupersededUpdates_Separator" class="labelTitle">This update replaces the following updates:</span>
+                        <div id="supersedesInfo">
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-04 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5025239)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-02 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5022913) UUP
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-03 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5023778)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-09 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5017389)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-10 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5018427)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-10 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019509)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-09 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5017321)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-09 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019311)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-11 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019980)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-01 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5022303)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-01 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5022360)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-11 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5020044)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-02 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5022913)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-10 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems
+                                (KB5018496)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2022-12 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5021255)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-02 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5022845)
+                            </div>
+
+                            <div style="padding-bottom: 0.3em;">
+                                2023-03 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5023706)
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div id="languageBox" style="display: none;">
+                <div id="ScopedViewHandler_Div2">
+                    <div id="languageContentBody" class="tabBodyContentBox boxTitleContainer">
+
+                        <table width="90%" cellpadding="0" cellspacing="0" border="0">
+
+                            <tbody>
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Arabic</span>
+                                </td>
+
+                                <td>
+                                    <span>Bulgarian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Czech</span>
+                                </td>
+
+                                <td>
+                                    <span>Danish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>German</span>
+                                </td>
+
+                                <td>
+                                    <span>Greek</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>English</span>
+                                </td>
+
+                                <td>
+                                    <span>Spanish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Estonian</span>
+                                </td>
+
+                                <td>
+                                    <span>Finnish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>French</span>
+                                </td>
+
+                                <td>
+                                    <span>Hebrew</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Croatian</span>
+                                </td>
+
+                                <td>
+                                    <span>Hungarian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Italian</span>
+                                </td>
+
+                                <td>
+                                    <span>Japanese</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Korean</span>
+                                </td>
+
+                                <td>
+                                    <span>Lithuanian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Latvian</span>
+                                </td>
+
+                                <td>
+                                    <span>Norwegian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Dutch</span>
+                                </td>
+
+                                <td>
+                                    <span>Polish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Portuguese (Brazil)</span>
+                                </td>
+
+                                <td>
+                                    <span>Portuguese (Portugal)</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Romanian</span>
+                                </td>
+
+                                <td>
+                                    <span>Russian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Slovak</span>
+                                </td>
+
+                                <td>
+                                    <span>Slovenian</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Serbian (Latin)</span>
+                                </td>
+
+                                <td>
+                                    <span>Swedish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Thai</span>
+                                </td>
+
+                                <td>
+                                    <span>Turkish</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Ukrainian</span>
+                                </td>
+
+                                <td>
+                                    <span>Chinese (Simplified)</span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="width:50%" class="textAlignLeft">
+                                    <span>Chinese (Traditional)</span>
+                                </td>
+
+                                <td>
+                                    <span>all</span>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                </div>
+            </div>
+            <div id="installBox" style="display: none;">
+                <div class="tabBodyContentBox" tabindex="1">
+                    <div id="rebootBehaviorDiv">
+                        <span id="ScopedViewHandler_labelRebooBehavior_Separator"
+                              class="labelTitle">Restart behavior:</span>
+                        <span id="ScopedViewHandler_rebootBehavior">Can request restart</span>
+                    </div>
+                    <div id="userInputDiv">
+                        <span id="ScopedViewHandler_labelRequiresInput_Separator" class="labelTitle">May request user input:</span>
+                        <span id="ScopedViewHandler_userInput">No</span>
+                    </div>
+                    <div id="installationImpactDiv">
+                        <span id="ScopedViewHandler_labelInstallationImpact_Separator" class="labelTitle">Must be installed exclusively:</span>
+                        <span id="ScopedViewHandler_installationImpact"></span>
+                    </div>
+                    <div id="connectivityDiv">
+                        <span id="ScopedViewHandler_labelInstallRequiresConnectivity_Separator" class="labelTitle">Requires network connectivity:</span>
+                        <span id="ScopedViewHandler_connectivity">No</span>
+                    </div>
+                    <div id="uninstallNotesDiv">
+                        <span id="ScopedViewHandler_labelUninstallNotes_Separator"
+                              class="labelTitle">Uninstall Notes:</span>
+
+                        <div>
+                            n/a
+                        </div>
+
+                    </div>
+                    <div id="uninstallStepsDiv">
+                        <span id="ScopedViewHandler_labelUninstallSteps_Separator"
+                              class="labelTitle">Uninstall Steps:</span>
+
+                        <div>
+                            n/a
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <span id="addToBasketButtonText" class="notVisible">
+    Add to Basket
+</span><span id="removeFromBasketButtonText" class="notVisible">
+    Remove from Basket
+ </span><span id="updateBasketButtonText" class="notVisible">
+    Update Basket
+</span>
+        <div class="inlineCloseButtonCenter textAlignCenter">
+            <a href="#Close" id="close" role="button" onclick="window.close()"
+               class="flatBlueButtonClose flatBlueButtonGeneric"><span id="labelOverview">Close</span></a>
+        </div>
+    </div>
+</form>
+
+
+</body>
+</html>

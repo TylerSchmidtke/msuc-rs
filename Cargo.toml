@@ -6,7 +6,7 @@ homepage = "https://github.com/TylerSchmidtke/msuc-rs"
 keywords = ["microsoft", "update", "catalog"]
 license = "MIT"
 readme = "README.md"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 authors = ["Tyler Schmidtke <tyler@schmidtke.dev>"]
 exclude = [
@@ -17,10 +17,10 @@ exclude = [
 
 [dependencies]
 reqwest = { version = "0.11.20", features = ["json"] }
-serde = { version = "1.0.188", features = ["derive"] }
 thiserror = { version = "1.0.48", features = [] }
 scraper = "0.17"
 chrono = "0.4.31"
+url = "2.4.1"
 
 [dev-dependencies]
 tokio-test = "0.4.3"
