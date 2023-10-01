@@ -263,45 +263,34 @@ impl Client {
 
     #[cfg(feature = "blocking")]
     pub fn search(&self, kb: &str) -> Result<Option<SearchResults>, Error> {
-        let url = format!("{}{}", self.search_url, query);
-        let mut next_page = true;
-        let mut event_target: String = String::new();
-        let mut event_argument: String = String::new();
-        let mut view_state: String = String::new();
         let mut results: SearchResults = vec![];
+        let mut meta = SearchPageMeta::default();
 
-        while next_page {
-            let resp = match event_target.as_str() {
-                "" => self.client
-                    .get(url.as_str())
-                    .send()
-                    .map_err(Error::ClientError)?,
-                _ => self.client.post(url.as_str())
-                    .form(&[
-                        ("__EVENTTARGET", event_target.as_str()),
-                        ("__EVENTARGUMENT", event_argument.as_str()),
-                        ("__VIEWSTATE", view_state.as_str()),
-                    ])
-                    .send()
-                    .map_err(Error::ClientError)?,
-            };
+        loop {
+            let builder = self.get_search_builder(
+                query,
+                &meta,
+            )?;
+            let resp = builder.send().map_err(Error::ClientError)?;
 
-            let html = resp.text().await.map_err(Error::ClientError)?;
-            let page = parse_search_results(&html
+            // TODO: Handle hidden errors in the page, e.g 500s
+            resp.error_for_status_ref()?;
+            let html = resp.text().map_err(Error::ClientError)?;
+            let res_page = parse_search_results(&html
             ).map_err(|e| Error::SearchError(
-                format!("Failed to parse search results for {}: {}", query, e)
+                format!("Failed to parse search results for {}: {:?}", query, e)
             ))?;
 
-            match page {
+            match res_page {
                 Some(p) => {
-                    results.extend(p.results);
-                    next_page = p.has_next_page;
-                    event_target = p.form_event_target;
-                    event_argument = p.form_event_argument;
-                    view_state = p.form_view_state;
+                    meta = p.0;
+                    results.extend(p.1);
+                    if !meta.has_next_page {
+                        break;
+                    }
                 }
                 None => {
-                    next_page = false;
+                    break;
                 }
             }
         }
