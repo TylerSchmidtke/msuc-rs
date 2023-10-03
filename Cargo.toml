@@ -16,8 +16,8 @@ exclude = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.11.20", features = ["json"] }
-thiserror = { version = "1.0.48", features = [] }
+reqwest = "0.11.21"
+thiserror = "1.0.49"
 scraper = "0.17"
 chrono = "0.4.31"
 url = "2.4.1"
