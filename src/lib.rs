@@ -313,6 +313,7 @@ impl Client {
             .send()
             .await
             .map_err(Error::ClientError)?;
+        resp.error_for_status_ref()?;
         let html = resp.text().await.map_err(Error::ClientError)?;
         parse_update_details(&html
         ).map_err(|e| Error::SearchError(
@@ -327,6 +328,7 @@ impl Client {
             .get(url.as_str())
             .send()
             .map_err(Error::ClientError)?;
+        resp.error_for_status_ref()?;
         let html = resp.text().map_err(Error::ClientError)?;
         parse_update_details(&html
         ).map_err(|e| Error::SearchError(
