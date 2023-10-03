@@ -10,4 +10,9 @@ See the [docs.rs](https://docs.rs/msuc) page for documentation.
 
 ## TODO
 
-[ ] Support pagination for searches - currently only the first page of results is returned.
+- [ ] Add support for the `tracing` crate
+- [ ] Consider returning an iterator for search results
+- [ ] Add page count to search meta
+  - Just need to parse this from the HTML
+- [ ] Inform user when search results are truncated by the Microsoft Update Catalog (1000+ results)
+  - Today this state is stored internally, but not exposed to the user
