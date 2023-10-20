@@ -170,7 +170,7 @@ impl SearchResultsStream for SearchResultsIterator {
         let builder = self.client.get_search_builder(
             &self.query,
             &self.meta,
-        ).map_err(Error::ClientError)?;
+        )?;
 
         let resp = builder.send().await.map_err(Error::ClientError)?;
 
@@ -214,7 +214,7 @@ impl SearchResultsStream for SearchResultsIterator {
         let builder = self.client.get_search_builder(
             &self.query,
             &self.meta,
-        ).map_err(Error::ClientError)?;
+        )?;
 
         let resp = builder.send().map_err(Error::ClientError)?;
 
