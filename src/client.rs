@@ -205,7 +205,7 @@ impl Client {
     /// #[cfg(not(feature = "blocking"))]
     /// tokio_test::block_on(async {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
-    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search iterator");
+    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search stream");
     ///     loop {
     ///         match stream.next().await {
     ///             Ok(Some(sr)) => {
@@ -229,7 +229,7 @@ impl Client {
     /// #[cfg(feature = "blocking")]
     /// {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
-    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search iterator");
+    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search stream");
     ///     loop {
     ///         match stream.next() {
     ///             Ok(Some(sr)) => {
