@@ -288,9 +288,9 @@ impl Client {
     ) -> Result<RequestBuilder, Error> {
         let mut u = Url::parse(&self.search_url).map_err(|e| {
             Error::InternalError(format!(
-                "Failed to parse search url '{}': {}",
+                "Failed to parse search url '{}': {:?}",
                 self.search_url,
-                e.to_string()
+                e
             ))
         })?;
         u.set_query(Some(&format!("q={}", query)));
