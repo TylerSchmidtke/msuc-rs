@@ -78,13 +78,13 @@ impl SearchResultsStreamer for SearchResultsStream {
 
         let builder = self.client.get_search_builder(&self.query, &self.meta)?;
 
-        let resp = builder.send().await.map_err(Error::ClientError)?;
+        let resp = builder.send().await.map_err(Error::Client)?;
 
         resp.error_for_status_ref()?;
-        let html = resp.text().await.map_err(Error::ClientError)?;
+        let html = resp.text().await.map_err(Error::Client)?;
         let res_page = parse_search_results(&html).map_err(|e| {
             self.meta.has_next_page = false;
-            Error::SearchError(format!(
+            Error::Search(format!(
                 "Failed to parse search results for {}: {:?}",
                 self.query, e
             ))
@@ -103,13 +103,13 @@ impl SearchResultsStreamer for SearchResultsStream {
 
         let builder = self.client.get_search_builder(&self.query, &self.meta)?;
 
-        let resp = builder.send().map_err(Error::ClientError)?;
+        let resp = builder.send().map_err(Error::Client)?;
 
         resp.error_for_status_ref()?;
-        let html = resp.text().map_err(Error::ClientError)?;
+        let html = resp.text().map_err(Error::Client)?;
         let res_page = parse_search_results(&html).map_err(|e| {
             self.meta.has_next_page = false;
-            Error::SearchError(format!(
+            Error::Search(format!(
                 "Failed to parse search results for {}: {:?}",
                 self.query, e
             ))
@@ -153,12 +153,12 @@ impl Client {
             let client = reqwest::Client::builder()
             .user_agent(format!("msuc-rs/{}", LIB_VERSION))
             .build()
-            .map_err(Error::ClientError)?;
+            .map_err(Error::Client)?;
         #[cfg(feature = "blocking")]
             let client = reqwest::blocking::Client::builder()
             .user_agent(format!("msuc-rs/{}", LIB_VERSION))
             .build()
-            .map_err(Error::ClientError)?;
+            .map_err(Error::Client)?;
 
         Ok(Client {
             client,
@@ -175,7 +175,7 @@ impl Client {
         meta: &SearchPageMeta,
     ) -> Result<RequestBuilder, Error> {
         let mut u = Url::parse(&self.search_url).map_err(|e| {
-            Error::InternalError(format!(
+            Error::Internal(format!(
                 "Failed to parse search url '{}': {:?}",
                 self.search_url,
                 e
@@ -287,11 +287,11 @@ impl Client {
             .get(url.as_str())
             .send()
             .await
-            .map_err(Error::ClientError)?;
+            .map_err(Error::Client)?;
         resp.error_for_status_ref()?;
-        let html = resp.text().await.map_err(Error::ClientError)?;
+        let html = resp.text().await.map_err(Error::Client)?;
         parse_update_details(&html).map_err(|e| {
-            Error::SearchError(format!(
+            Error::Search(format!(
                 "Failed to parse update details for {}: {:?}",
                 update_id, e
             ))
@@ -305,11 +305,11 @@ impl Client {
             .client
             .get(url.as_str())
             .send()
-            .map_err(Error::ClientError)?;
+            .map_err(Error::Client)?;
         resp.error_for_status_ref()?;
-        let html = resp.text().map_err(Error::ClientError)?;
+        let html = resp.text().map_err(Error::Client)?;
         parse_update_details(&html).map_err(|e| {
-            Error::SearchError(format!(
+            Error::Search(format!(
                 "Failed to parse update details for {}: {:?}",
                 update_id, e
             ))

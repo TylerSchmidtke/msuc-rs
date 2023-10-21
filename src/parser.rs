@@ -19,10 +19,10 @@ pub fn parse_search_results(html: &str) -> Result<Option<SearchPage>, Error> {
 
     // The current page places the results in a table within a div container in
     let selector = Selector::parse(r#"div#tableContainer tr"#)
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+        .map_err(|e| Error::Parsing(e.to_string()))?;
     let mut results: Vec<SearchResult> = vec![];
     for row in document.select(&selector) {
-        let id = row.value().attr("id").ok_or(Error::ParseError(
+        let id = row.value().attr("id").ok_or(Error::Parsing(
             "Failed to find id attribute for search result element".to_string(),
         ))?;
         if id.eq("headerRow") {
@@ -61,7 +61,7 @@ pub fn parse_search_results(html: &str) -> Result<Option<SearchPage>, Error> {
                     // on the update details page
                     .split('\n')
                     .next()
-                    .ok_or(Error::ParseError("Failed to parse size".to_string()))?
+                    .ok_or(Error::Parsing("Failed to parse size".to_string()))?
                     .trim()
                     .to_string(),
             )?,
@@ -124,12 +124,12 @@ pub fn parse_update_details(html: &str) -> Result<Update, Error> {
             "#ScopedViewHandler_msrcSeverity",
         )?),
         info_url: Url::parse(&select_with_path(&document, "#moreInfoDiv a")?)
-            .map_err(|e| Error::ParseError(e.to_string()))?,
+            .map_err(|e| Error::Parsing(e.to_string()))?,
         support_url: Url::parse(
             // There is a typo in the ID of this element 'suportUrlDiv'
             &select_with_path(&document, "#suportUrlDiv a")?,
         )
-            .map_err(|e| Error::ParseError(e.to_string()))?,
+            .map_err(|e| Error::Parsing(e.to_string()))?,
         reboot_behavior: parse_reboot_behavior(select_with_path(
             &document,
             "#ScopedViewHandler_rebootBehavior",
@@ -166,7 +166,7 @@ pub fn parse_update_details(html: &str) -> Result<Update, Error> {
 fn parse_hidden_error_page(html: &str) -> Result<(), Error> {
     let document = Html::parse_document(html);
     let selector = Selector::parse("div#errorPageDisplayedError")
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+        .map_err(|e| Error::Parsing(e.to_string()))?;
     match document.select(&selector).next() {
         Some(e) => {
             // the error is format is: "[Error number: 8DDD0010]"
@@ -177,7 +177,7 @@ fn parse_hidden_error_page(html: &str) -> Result<(), Error> {
                 .trim_start_matches("[Error number: ")
                 .trim_end_matches(']')
                 .to_string();
-            Err(Error::MsucError(
+            Err(Error::Msuc(
                 "received 500 error from Microsoft Update Catalog".to_string(),
                 error_code,
             ))
@@ -192,17 +192,17 @@ fn get_element_text(element: &scraper::ElementRef) -> Result<String, Error> {
 }
 
 fn get_element_attr(document: &Html, path: &str, attr: &str) -> Result<String, Error> {
-    let selector = Selector::parse(path).map_err(|e| Error::ParseError(e.to_string()))?;
+    let selector = Selector::parse(path).map_err(|e| Error::Parsing(e.to_string()))?;
     document
         .select(&selector)
         .next()
-        .ok_or(Error::ParseError(format!(
+        .ok_or(Error::Parsing(format!(
             "Failed to find element with selector '{}'",
             path
         )))?
         .value()
         .attr(attr)
-        .ok_or(Error::ParseError(format!(
+        .ok_or(Error::Parsing(format!(
             "Failed to find attribute '{}' for element",
             attr
         )))
@@ -210,11 +210,11 @@ fn get_element_attr(document: &Html, path: &str, attr: &str) -> Result<String, E
 }
 
 fn select_with_path(document: &Html, path: &str) -> Result<String, Error> {
-    let selector = Selector::parse(path).map_err(|e| Error::ParseError(e.to_string()))?;
+    let selector = Selector::parse(path).map_err(|e| Error::Parsing(e.to_string()))?;
     document
         .select(&selector)
         .next()
-        .ok_or(Error::ParseError(format!(
+        .ok_or(Error::Parsing(format!(
             "Failed to find element with selector '{}'",
             path
         )))
@@ -225,7 +225,7 @@ fn clean_nested_div_text(text: String) -> Result<String, Error> {
     Ok(text
         .split('\n')
         .last()
-        .ok_or(Error::ParseError("Failed to clean div text".to_string()))?
+        .ok_or(Error::Parsing("Failed to clean div text".to_string()))?
         .trim()
         .to_string())
 }
@@ -259,7 +259,7 @@ fn parse_reboot_behavior(s: String) -> Result<RebootBehavior, Error> {
         "Recommended" => Ok(RebootBehavior::Recommended),
         "Not required" => Ok(RebootBehavior::NotRequired),
         "Never restarts" => Ok(RebootBehavior::NeverRestarts),
-        _ => Err(Error::ParseError(format!(
+        _ => Err(Error::Parsing(format!(
             "Failed to parse reboot behavior from '{}'",
             s
         ))),
@@ -271,7 +271,7 @@ fn parse_yes_no_bool(s: String) -> Result<bool, Error> {
         "Yes" => Ok(true),
         "No" => Ok(false),
         "" => Ok(false),
-        _ => Err(Error::ParseError(format!(
+        _ => Err(Error::Parsing(format!(
             "Failed to parse requires user input from '{}'",
             s
         ))),
@@ -280,7 +280,7 @@ fn parse_yes_no_bool(s: String) -> Result<bool, Error> {
 
 fn parse_update_date(date: String) -> Result<chrono::NaiveDate, Error> {
     chrono::NaiveDate::parse_from_str(date.as_str(), "%m/%d/%Y")
-        .map_err(|e| Error::ParseError(e.to_string()))
+        .map_err(|e| Error::Parsing(e.to_string()))
 }
 
 fn parse_kb_from_string(s: String) -> Result<String, Error> {
@@ -288,12 +288,12 @@ fn parse_kb_from_string(s: String) -> Result<String, Error> {
         "KB{}",
         s.split("(KB")
             .last()
-            .ok_or(Error::ParseError(
+            .ok_or(Error::Parsing(
                 "Failed to find KB number in title".to_string()
             ))?
             .split(')')
             .next()
-            .ok_or(Error::ParseError(
+            .ok_or(Error::Parsing(
                 "Failed to parse KB number from title".to_string()
             ))?
     ))
@@ -301,11 +301,11 @@ fn parse_kb_from_string(s: String) -> Result<String, Error> {
 
 fn parse_size_from_mb_string(s: String) -> Result<u64, Error> {
     Ok(s.split(' ').next()
-        .ok_or(Error::ParseError("Failed to parse size from MB string".to_string()))?
+        .ok_or(Error::Parsing("Failed to parse size from MB string".to_string()))?
         // There's a decimal point in the size, cheap way to remove it
         .replace('.', "")
         .parse::<u64>()
-        .map_err(|e: ParseIntError| Error::ParseError(e.to_string()))?
+        .map_err(|e: ParseIntError| Error::Parsing(e.to_string()))?
         // divide by ten to account for the decimal point
         * 1024 * 1024
         / 10)
@@ -316,7 +316,7 @@ fn parse_search_row_id(id: &str) -> Result<(&str, &str), Error> {
 
     match parts.len() {
         2 => Ok((parts.remove(0), parts.remove(0))),
-        _ => Err(Error::ParseError(format!(
+        _ => Err(Error::Parsing(format!(
             "Failed to parse row id from '{}'",
             id
         ))),
@@ -334,14 +334,14 @@ fn clean_string_with_newlines(s: String) -> String {
 
 fn get_update_superseded_by_updates(document: &Html) -> Result<Vec<SupersededByUpdate>, Error> {
     let selector = Selector::parse(r#"div#supersededbyInfo div a"#)
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+        .map_err(|e| Error::Parsing(e.to_string()))?;
     let mut superseded_by = vec![];
     for row in document.select(&selector) {
         let title = clean_string_with_newlines(get_element_text(&row)?);
         let id = row
             .value()
             .attr("href")
-            .ok_or(Error::ParseError(
+            .ok_or(Error::Parsing(
                 "Failed to find id attribute for superseded by update element".to_string(),
             ))?
             .trim_start_matches("ScopedViewInline.aspx?updateid=");
@@ -356,7 +356,7 @@ fn get_update_superseded_by_updates(document: &Html) -> Result<Vec<SupersededByU
 
 fn get_update_supercedes_updates(document: &Html) -> Result<Vec<SupersedesUpdate>, Error> {
     let selector = Selector::parse(r#"div#supersedesInfo div"#)
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+        .map_err(|e| Error::Parsing(e.to_string()))?;
     let mut supersedes = vec![];
     for row in document.select(&selector) {
         let title = clean_string_with_newlines(get_element_text(&row)?);
@@ -388,17 +388,17 @@ fn get_search_row_selector(
         .0
         .chars()
         .next()
-        .ok_or(Error::ParseError("the update_id is empty".to_string()))?
+        .ok_or(Error::Parsing("the update_id is empty".to_string()))?
         .is_numeric()
     {
         return Selector::parse(&format!(
             r#"td#\3{} {}_C{}_R{}"#,
             update_id_split.0, update_id_split.1, column_id, row_id
         ))
-            .map_err(|e| Error::ParseError(e.to_string()));
+            .map_err(|e| Error::Parsing(e.to_string()));
     }
     Selector::parse(&format!(r#"td#{}_C{}_R{}"#, update_id, column_id, row_id))
-        .map_err(|e| Error::ParseError(e.to_string()))
+        .map_err(|e| Error::Parsing(e.to_string()))
 }
 
 fn get_search_row_text(
@@ -411,7 +411,7 @@ fn get_search_row_text(
     let t: String = element
         .select(&selector)
         .next()
-        .ok_or(Error::ParseError(format!(
+        .ok_or(Error::Parsing(format!(
             "no result for id '{}', column '{:?}', row '{}' with given selector '{:?}'",
             update_id, &column, row_id, selector
         )))?
@@ -643,7 +643,7 @@ mod test {
     fn test_parse_hidden_error_search_results() {
         let test_cases = [(
             load_test_data!("msuc_search_error_500.html"),
-            "msuc error: received 500 error from Microsoft Update Catalog, code: 8DDD0010",
+            "Microsoft Update Catalog error: received 500 error from Microsoft Update Catalog, code: 8DDD0010",
         )];
 
         for tc in test_cases.iter() {

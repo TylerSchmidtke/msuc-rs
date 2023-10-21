@@ -5,16 +5,16 @@ use url::Url;
 /// `Error` represents an error that can occur while using the MSUC client.
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("reqwest error: {0}")]
-    ClientError(#[from] reqwest::Error),
-    #[error("parse error: {0}")]
-    ParseError(String),
+    #[error("request error: {0}")]
+    Client(#[from] reqwest::Error),
+    #[error("parsing error: {0}")]
+    Parsing(String),
     #[error("search error: {0}")]
-    SearchError(String),
+    Search(String),
     #[error("internal error: {0}")]
-    InternalError(String),
-    #[error("msuc error: {0}, code: {1}")]
-    MsucError(String, String),
+    Internal(String),
+    #[error("Microsoft Update Catalog error: {0}, code: {1}")]
+    Msuc(String, String),
 }
 
 /// `SearchPage` represents a page of search results and the metadata needed to retrieve the next.
