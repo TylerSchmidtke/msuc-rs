@@ -250,7 +250,7 @@ impl Client {
     }
 
     /// `get_update` retrieves the update details for the given update id.
-    /// The update id can be found in the `id` field of the `Update` struct.
+    /// The update id can be found in the `id` field of the `SearchResult` struct.
     ///
     /// # Parameters
     ///
