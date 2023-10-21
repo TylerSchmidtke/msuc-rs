@@ -89,6 +89,7 @@ async fn main() {
     }
 
 }
+```
 
 ## Crate features
 
