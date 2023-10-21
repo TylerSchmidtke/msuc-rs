@@ -15,7 +15,7 @@ async fn test_msuc_client_stream() {
                 for r in sr {
                     println!("{}: {}", r.id, r.title);
                 }
-            },
+            }
             Ok(None) => break,
             Err(e) => {
                 println!("Error: {:?}", e);

@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-use std::num::ParseIntError;
+#[cfg(not(feature = "blocking"))]
 use async_trait::async_trait;
 #[cfg(not(feature = "blocking"))]
 use reqwest::RequestBuilder;
 #[cfg(feature = "blocking")]
 use reqwest::blocking::RequestBuilder;
 use scraper::{Html, Selector};
+use std::collections::HashMap;
+use std::num::ParseIntError;
 use thiserror::Error;
 use url::Url;
-
 
 const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -162,24 +162,23 @@ impl SearchResultsIterator {
 #[cfg(not(feature = "blocking"))]
 #[async_trait]
 impl SearchResultsStream for SearchResultsIterator {
-    async fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error>{
+    async fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
         if !self.meta.has_next_page {
             return Ok(None);
         }
 
-        let builder = self.client.get_search_builder(
-            &self.query,
-            &self.meta,
-        )?;
+        let builder = self.client.get_search_builder(&self.query, &self.meta)?;
 
         let resp = builder.send().await.map_err(Error::ClientError)?;
 
         resp.error_for_status_ref()?;
         let html = resp.text().await.map_err(Error::ClientError)?;
-        let res_page = parse_search_results(&html
-        ).map_err(|e| Error::SearchError(
-            format!("Failed to parse search results for {}: {:?}", self.query, e)
-        ));
+        let res_page = parse_search_results(&html).map_err(|e| {
+            Error::SearchError(format!(
+                "Failed to parse search results for {}: {:?}",
+                self.query, e
+            ))
+        });
 
         match res_page {
             Ok(Some(p)) => {
@@ -206,24 +205,23 @@ impl SearchResultsStream for SearchResultsIterator {
 
 #[cfg(feature = "blocking")]
 impl SearchResultsStream for SearchResultsIterator {
-    fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error>{
+    fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
         if !self.meta.has_next_page {
             return Ok(None);
         }
 
-        let builder = self.client.get_search_builder(
-            &self.query,
-            &self.meta,
-        )?;
+        let builder = self.client.get_search_builder(&self.query, &self.meta)?;
 
         let resp = builder.send().map_err(Error::ClientError)?;
 
         resp.error_for_status_ref()?;
         let html = resp.text().map_err(Error::ClientError)?;
-        let res_page = parse_search_results(&html
-        ).map_err(|e| Error::SearchError(
-            format!("Failed to parse search results for {}: {:?}", self.query, e)
-        ));
+        let res_page = parse_search_results(&html).map_err(|e| {
+            Error::SearchError(format!(
+                "Failed to parse search results for {}: {:?}",
+                self.query, e
+            ))
+        });
 
         match res_page {
             Ok(Some(p)) => {
@@ -292,7 +290,9 @@ impl Client {
         Ok(Client {
             client,
             search_url: String::from("https://www.catalog.update.microsoft.com/Search.aspx"),
-            update_url: String::from("https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid="),
+            update_url: String::from(
+                "https://www.catalog.update.microsoft.com/ScopedViewInline.aspx?updateid=",
+            ),
         })
     }
 
@@ -301,18 +301,17 @@ impl Client {
         query: &str,
         meta: &SearchPageMeta,
     ) -> Result<RequestBuilder, Error> {
-        let mut u = Url::parse(&self.search_url).map_err(|e|
-            Error::InternalError(format!("Failed to parse search url '{}': {}", self.search_url, e.to_string()))
-        )?;
+        let mut u = Url::parse(&self.search_url).map_err(|e| {
+            Error::InternalError(format!(
+                "Failed to parse search url '{}': {}",
+                self.search_url,
+                e.to_string()
+            ))
+        })?;
         u.set_query(Some(&format!("q={}", query)));
         match meta.event_target.as_str() {
-            "" => Ok(self.client
-                .get(u.as_str())),
-            _ => {
-                Ok(self.client.post(u.as_str())
-                       .form(&meta.as_map()),
-                )
-            }
+            "" => Ok(self.client.get(u.as_str())),
+            _ => Ok(self.client.post(u.as_str()).form(&meta.as_map())),
         }
     }
 
@@ -333,13 +332,24 @@ impl Client {
     ///
     /// ```
     /// use msuc::Client as MsucClient;
+    /// use msuc::SearchResultsStream;
     /// use tokio_test;
     ///
     /// tokio_test::block_on(async {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
-    ///     let resp = msuc_client.get_search_iterator("MS08-067").await.expect("Failed to search");
-    ///     for update in resp.unwrap().iter() {
-    ///       println!("Found update: {}", update.title);
+    ///     let mut iterator = msuc_client.get_search_iterator("MS08-067").expect("Failed to create search iterator");
+    ///     loop {
+    ///         match iterator.stream().await {
+    ///             Ok(Some(sr)) => {
+    ///                 for r in sr {
+    ///                     println!("{}: {}", r.id, r.title);
+    ///                 }
+    ///             }
+    ///             Ok(None) => break,
+    ///             Err(e) => {
+    ///                 println!("Error: {:?}", e);
+    ///             }
+    ///         }
     ///     }
     /// });
     #[cfg(not(feature = "blocking"))]
@@ -348,18 +358,17 @@ impl Client {
         let mut meta = SearchPageMeta::default();
 
         loop {
-            let builder = self.get_search_builder(
-                query,
-                &meta,
-            )?;
+            let builder = self.get_search_builder(query, &meta)?;
             let resp = builder.send().await.map_err(Error::ClientError)?;
 
             resp.error_for_status_ref()?;
             let html = resp.text().await.map_err(Error::ClientError)?;
-            let res_page = parse_search_results(&html
-            ).map_err(|e| Error::SearchError(
-                format!("Failed to parse search results for {}: {:?}", query, e)
-            ))?;
+            let res_page = parse_search_results(&html).map_err(|e| {
+                Error::SearchError(format!(
+                    "Failed to parse search results for {}: {:?}",
+                    query, e
+                ))
+            })?;
 
             match res_page {
                 Some(p) => {
@@ -387,18 +396,17 @@ impl Client {
         let mut meta = SearchPageMeta::default();
 
         loop {
-            let builder = self.get_search_builder(
-                query,
-                &meta,
-            )?;
+            let builder = self.get_search_builder(query, &meta)?;
             let resp = builder.send().map_err(Error::ClientError)?;
 
             resp.error_for_status_ref()?;
             let html = resp.text().map_err(Error::ClientError)?;
-            let res_page = parse_search_results(&html
-            ).map_err(|e| Error::SearchError(
-                format!("Failed to parse search results for {}: {:?}", query, e)
-            ))?;
+            let res_page = parse_search_results(&html).map_err(|e| {
+                Error::SearchError(format!(
+                    "Failed to parse search results for {}: {:?}",
+                    query, e
+                ))
+            })?;
 
             match res_page {
                 Some(p) => {
@@ -442,32 +450,38 @@ impl Client {
     #[cfg(not(feature = "blocking"))]
     pub async fn get_update_details(&self, update_id: &str) -> Result<Update, Error> {
         let url = format!("{}{}", self.update_url, update_id);
-        let resp = self.client
+        let resp = self
+            .client
             .get(url.as_str())
             .send()
             .await
             .map_err(Error::ClientError)?;
         resp.error_for_status_ref()?;
         let html = resp.text().await.map_err(Error::ClientError)?;
-        parse_update_details(&html
-        ).map_err(|e| Error::SearchError(
-            format!("Failed to parse update details for {}: {:?}", update_id, e)
-        ))
+        parse_update_details(&html).map_err(|e| {
+            Error::SearchError(format!(
+                "Failed to parse update details for {}: {:?}",
+                update_id, e
+            ))
+        })
     }
 
     #[cfg(feature = "blocking")]
     pub fn get_update_details(&self, update_id: &str) -> Result<Update, Error> {
         let url = format!("{}{}", self.update_url, update_id);
-        let resp = self.client
+        let resp = self
+            .client
             .get(url.as_str())
             .send()
             .map_err(Error::ClientError)?;
         resp.error_for_status_ref()?;
         let html = resp.text().map_err(Error::ClientError)?;
-        parse_update_details(&html
-        ).map_err(|e| Error::SearchError(
-            format!("Failed to parse update details for {}: {}", update_id, e)
-        ))
+        parse_update_details(&html).map_err(|e| {
+            Error::SearchError(format!(
+                "Failed to parse update details for {}: {}",
+                update_id, e
+            ))
+        })
     }
 }
 
@@ -487,7 +501,10 @@ fn parse_hidden_error_page(html: &str) -> Result<(), Error> {
                 .trim_start_matches("[Error number: ")
                 .trim_end_matches(']')
                 .to_string();
-            Err(Error::MsucError("received 500 error from Microsoft Update Catalog".to_string(), error_code))
+            Err(Error::MsucError(
+                "received 500 error from Microsoft Update Catalog".to_string(),
+                error_code,
+            ))
         }
         None => Ok(()),
     }
@@ -502,60 +519,40 @@ fn parse_search_results(html: &str) -> Result<Option<SearchPage>, Error> {
         .map_err(|e| Error::ParseError(e.to_string()))?;
     let mut results: Vec<SearchResult> = vec![];
     for row in document.select(&selector) {
-        let id = row
-            .value()
-            .attr("id")
-            .ok_or(Error::ParseError("Failed to find id attribute for search result element".to_string()))?;
+        let id = row.value().attr("id").ok_or(Error::ParseError(
+            "Failed to find id attribute for search result element".to_string(),
+        ))?;
         if id.eq("headerRow") {
             continue;
         }
 
         let (update_id, row_id) = parse_search_row_id(id)?;
-        let title = get_search_row_text(
-            &row,
-            SearchResColumn::Title,
-            update_id,
-            row_id,
-        )?;
+        let title = get_search_row_text(&row, SearchResColumn::Title, update_id, row_id)?;
         results.push(SearchResult {
             title: title.to_string(),
             id: update_id.to_string(),
             kb: parse_kb_from_string(title)?,
-            product: get_search_row_text(
-                &row,
-                SearchResColumn::Product,
-                update_id,
-                row_id,
-            )?,
+            product: get_search_row_text(&row, SearchResColumn::Product, update_id, row_id)?,
             classification: get_search_row_text(
                 &row,
                 SearchResColumn::Classification,
                 update_id,
                 row_id,
             )?,
-            last_modified: parse_update_date(
-                get_search_row_text(
-                    &row,
-                    SearchResColumn::LastUpdated,
-                    update_id,
-                    row_id,
-                )?
-            )?,
-            version: parse_optional_string(
-                get_search_row_text(
-                    &row,
-                    SearchResColumn::Version,
-                    update_id,
-                    row_id,
-                )?
-            ),
+            last_modified: parse_update_date(get_search_row_text(
+                &row,
+                SearchResColumn::LastUpdated,
+                update_id,
+                row_id,
+            )?)?,
+            version: parse_optional_string(get_search_row_text(
+                &row,
+                SearchResColumn::Version,
+                update_id,
+                row_id,
+            )?),
             size: parse_size_from_mb_string(
-                get_search_row_text(
-                    &row,
-                    SearchResColumn::Size,
-                    update_id,
-                    row_id,
-                )?
+                get_search_row_text(&row, SearchResColumn::Size, update_id, row_id)?
                     // There is an original size in the response, but for consistency
                     // we'll use the string representation of the size that's also
                     // on the update details page
@@ -563,7 +560,7 @@ fn parse_search_results(html: &str) -> Result<Option<SearchPage>, Error> {
                     .next()
                     .ok_or(Error::ParseError("Failed to parse size".to_string()))?
                     .trim()
-                    .to_string()
+                    .to_string(),
             )?,
         });
     }
@@ -581,17 +578,19 @@ fn parse_search_results(html: &str) -> Result<Option<SearchPage>, Error> {
             } else {
                 "".to_string()
             },
-            event_argument: get_element_attr(&document, "#__EVENTARGUMENT", "value").unwrap_or_else(|_| "".to_string()),
-            event_validation: get_element_attr(&document, "#__EVENTVALIDATION", "value").unwrap_or_else(|_| "".to_string()),
+            event_argument: get_element_attr(&document, "#__EVENTARGUMENT", "value")
+                .unwrap_or_else(|_| "".to_string()),
+            event_validation: get_element_attr(&document, "#__EVENTVALIDATION", "value")
+                .unwrap_or_else(|_| "".to_string()),
             view_state: get_element_attr(&document, "#__VIEWSTATE", "value")?,
-            view_state_generator: get_element_attr(&document, "#__VIEWSTATEGENERATOR", "value").unwrap_or_else(|_| "".to_string()),
+            view_state_generator: get_element_attr(&document, "#__VIEWSTATEGENERATOR", "value")
+                .unwrap_or_else(|_| "".to_string()),
             // If this element exists, there is a next page
             has_next_page,
             too_many_results: select_with_path(&document, "#ctl00_catalogBody_moreResults").is_ok(),
         },
         results,
-    ))
-    )
+    )))
 }
 
 fn parse_update_details(html: &str) -> Result<Update, Error> {
@@ -602,62 +601,56 @@ fn parse_update_details(html: &str) -> Result<Update, Error> {
         id: select_with_path(&document, "#ScopedViewHandler_UpdateID")?,
         kb: format!(
             "KB{}",
-            clean_nested_div_text(
-                select_with_path(&document, "div#kbDiv")?
-            )?
+            clean_nested_div_text(select_with_path(&document, "div#kbDiv")?)?
         ),
-        classification: clean_nested_div_text(
-            select_with_path(&document, "#classificationDiv")?
-        )?,
-        last_modified: parse_update_date(
-            select_with_path(&document, "#ScopedViewHandler_date")?
-        )?,
-        size: parse_size_from_mb_string(
-            select_with_path(&document, "#ScopedViewHandler_size")?
-        )?,
+        classification: clean_nested_div_text(select_with_path(&document, "#classificationDiv")?)?,
+        last_modified: parse_update_date(select_with_path(&document, "#ScopedViewHandler_date")?)?,
+        size: parse_size_from_mb_string(select_with_path(&document, "#ScopedViewHandler_size")?)?,
         description: select_with_path(&document, "#ScopedViewHandler_desc")?,
-        architecture: parse_optional_string(
-            clean_nested_div_text(
-                select_with_path(&document, "#archDiv")?
-            )?
-        ),
+        architecture: parse_optional_string(clean_nested_div_text(select_with_path(
+            &document, "#archDiv",
+        )?)?),
         supported_products: parse_nested_div_list(&document, "#productsDiv")?,
         supported_languages: parse_nested_div_list(&document, "#languagesDiv")?,
-        msrc_number: parse_optional_string(
-            clean_nested_div_text(
-                select_with_path(&document, "#securityBullitenDiv")?
-            )?
-        ),
-        msrc_severity: parse_optional_string(
-            select_with_path(&document, "#ScopedViewHandler_msrcSeverity")?
-        ),
-        info_url: Url::parse(
-            &select_with_path(&document, "#moreInfoDiv a")?
-        )
+        msrc_number: parse_optional_string(clean_nested_div_text(select_with_path(
+            &document,
+            "#securityBullitenDiv",
+        )?)?),
+        msrc_severity: parse_optional_string(select_with_path(
+            &document,
+            "#ScopedViewHandler_msrcSeverity",
+        )?),
+        info_url: Url::parse(&select_with_path(&document, "#moreInfoDiv a")?)
             .map_err(|e| Error::ParseError(e.to_string()))?,
         support_url: Url::parse(
             // There is a typo in the ID of this element 'suportUrlDiv'
-            &select_with_path(&document, "#suportUrlDiv a")?
+            &select_with_path(&document, "#suportUrlDiv a")?,
         )
             .map_err(|e| Error::ParseError(e.to_string()))?,
-        reboot_behavior: parse_reboot_behavior(
-            select_with_path(&document, "#ScopedViewHandler_rebootBehavior")?
-        )?,
-        requires_user_input: parse_yes_no_bool(
-            select_with_path(&document, "#ScopedViewHandler_userInput")?
-        )?,
-        is_exclusive_install: parse_yes_no_bool(
-            select_with_path(&document, "#ScopedViewHandler_installationImpact")?
-        )?,
-        requires_network_connectivity: parse_yes_no_bool(
-            select_with_path(&document, "#ScopedViewHandler_connectivity")?
-        )?,
-        uninstall_notes: parse_optional_string(clean_string_with_newlines(
-            select_with_path(&document, "#uninstallNotesDiv div")?
-        )),
-        uninstall_steps: parse_optional_string(
-            select_with_path(&document, "#uninstallStepsDiv div")?
-        ),
+        reboot_behavior: parse_reboot_behavior(select_with_path(
+            &document,
+            "#ScopedViewHandler_rebootBehavior",
+        )?)?,
+        requires_user_input: parse_yes_no_bool(select_with_path(
+            &document,
+            "#ScopedViewHandler_userInput",
+        )?)?,
+        is_exclusive_install: parse_yes_no_bool(select_with_path(
+            &document,
+            "#ScopedViewHandler_installationImpact",
+        )?)?,
+        requires_network_connectivity: parse_yes_no_bool(select_with_path(
+            &document,
+            "#ScopedViewHandler_connectivity",
+        )?)?,
+        uninstall_notes: parse_optional_string(clean_string_with_newlines(select_with_path(
+            &document,
+            "#uninstallNotesDiv div",
+        )?)),
+        uninstall_steps: parse_optional_string(select_with_path(
+            &document,
+            "#uninstallStepsDiv div",
+        )?),
         supersedes: get_update_supercedes_updates(&document)?,
         superseded_by: get_update_superseded_by_updates(&document)?,
     };
@@ -666,32 +659,37 @@ fn parse_update_details(html: &str) -> Result<Update, Error> {
 }
 
 fn get_element_text(element: &scraper::ElementRef) -> Result<String, Error> {
-    let t: String = element
-        .text()
-        .collect();
+    let t: String = element.text().collect();
     Ok(t.trim().to_string())
 }
 
 fn get_element_attr(document: &Html, path: &str, attr: &str) -> Result<String, Error> {
-    let selector = Selector::parse(path)
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+    let selector = Selector::parse(path).map_err(|e| Error::ParseError(e.to_string()))?;
     document
         .select(&selector)
         .next()
-        .ok_or(Error::ParseError(format!("Failed to find element with selector '{}'", path)))?
+        .ok_or(Error::ParseError(format!(
+            "Failed to find element with selector '{}'",
+            path
+        )))?
         .value()
         .attr(attr)
-        .ok_or(Error::ParseError(format!("Failed to find attribute '{}' for element", attr)))
+        .ok_or(Error::ParseError(format!(
+            "Failed to find attribute '{}' for element",
+            attr
+        )))
         .map(|s| s.to_string())
 }
 
 fn select_with_path(document: &Html, path: &str) -> Result<String, Error> {
-    let selector = Selector::parse(path)
-        .map_err(|e| Error::ParseError(e.to_string()))?;
+    let selector = Selector::parse(path).map_err(|e| Error::ParseError(e.to_string()))?;
     document
         .select(&selector)
         .next()
-        .ok_or(Error::ParseError(format!("Failed to find element with selector '{}'", path)))
+        .ok_or(Error::ParseError(format!(
+            "Failed to find element with selector '{}'",
+            path
+        )))
         .and_then(|e| get_element_text(&e))
 }
 
@@ -715,19 +713,18 @@ fn clean_nested_div_text(text: String) -> Result<String, Error> {
 }
 
 fn parse_nested_div_list(document: &Html, path: &str) -> Result<Vec<String>, Error> {
-    Ok(
-        select_with_path(document, path)?
-            .split('\n')
-            .filter_map(|s| {
-                let s = s.trim();
-                // filter the first label element and empty string/rows
-                if s.is_empty() || s.ends_with(':') || s == "," {
-                    None
-                } else {
-                    Some(s.to_string())
-                }
-            })
-            .collect())
+    Ok(select_with_path(document, path)?
+        .split('\n')
+        .filter_map(|s| {
+            let s = s.trim();
+            // filter the first label element and empty string/rows
+            if s.is_empty() || s.ends_with(':') || s == "," {
+                None
+            } else {
+                Some(s.to_string())
+            }
+        })
+        .collect())
 }
 
 fn parse_optional_string(s: String) -> Option<String> {
@@ -744,7 +741,10 @@ fn parse_reboot_behavior(s: String) -> Result<RebootBehavior, Error> {
         "Recommended" => Ok(RebootBehavior::Recommended),
         "Not required" => Ok(RebootBehavior::NotRequired),
         "Never restarts" => Ok(RebootBehavior::NeverRestarts),
-        _ => Err(Error::ParseError(format!("Failed to parse reboot behavior from '{}'", s))),
+        _ => Err(Error::ParseError(format!(
+            "Failed to parse reboot behavior from '{}'",
+            s
+        ))),
     }
 }
 
@@ -753,7 +753,10 @@ fn parse_yes_no_bool(s: String) -> Result<bool, Error> {
         "Yes" => Ok(true),
         "No" => Ok(false),
         "" => Ok(false),
-        _ => Err(Error::ParseError(format!("Failed to parse requires user input from '{}'", s))),
+        _ => Err(Error::ParseError(format!(
+            "Failed to parse requires user input from '{}'",
+            s
+        ))),
     }
 }
 
@@ -765,11 +768,17 @@ fn parse_update_date(date: String) -> Result<chrono::NaiveDate, Error> {
 fn parse_kb_from_string(s: String) -> Result<String, Error> {
     Ok(format!(
         "KB{}",
-        s.split("(KB").last()
-            .ok_or(Error::ParseError("Failed to find KB number in title".to_string()))?
-            .split(')').next()
-            .ok_or(Error::ParseError("Failed to parse KB number from title".to_string()))?)
-    )
+        s.split("(KB")
+            .last()
+            .ok_or(Error::ParseError(
+                "Failed to find KB number in title".to_string()
+            ))?
+            .split(')')
+            .next()
+            .ok_or(Error::ParseError(
+                "Failed to parse KB number from title".to_string()
+            ))?
+    ))
 }
 
 fn parse_size_from_mb_string(s: String) -> Result<u64, Error> {
@@ -780,7 +789,8 @@ fn parse_size_from_mb_string(s: String) -> Result<u64, Error> {
         .parse::<u64>()
         .map_err(|e: ParseIntError| Error::ParseError(e.to_string()))?
         // divide by ten to account for the decimal point
-        * 1024 * 1024 / 10)
+        * 1024 * 1024
+        / 10)
 }
 
 fn parse_search_row_id(id: &str) -> Result<(&str, &str), Error> {
@@ -788,7 +798,10 @@ fn parse_search_row_id(id: &str) -> Result<(&str, &str), Error> {
 
     match parts.len() {
         2 => Ok((parts.remove(0), parts.remove(0))),
-        _ => Err(Error::ParseError(format!("Failed to parse row id from '{}'", id))),
+        _ => Err(Error::ParseError(format!(
+            "Failed to parse row id from '{}'",
+            id
+        ))),
     }
 }
 
@@ -806,13 +819,13 @@ fn get_update_superseded_by_updates(document: &Html) -> Result<Vec<SupersededByU
         .map_err(|e| Error::ParseError(e.to_string()))?;
     let mut superseded_by = vec![];
     for row in document.select(&selector) {
-        let title = clean_string_with_newlines(
-            get_element_text(&row)?
-        );
+        let title = clean_string_with_newlines(get_element_text(&row)?);
         let id = row
             .value()
             .attr("href")
-            .ok_or(Error::ParseError("Failed to find id attribute for superseded by update element".to_string()))?
+            .ok_or(Error::ParseError(
+                "Failed to find id attribute for superseded by update element".to_string(),
+            ))?
             .trim_start_matches("ScopedViewInline.aspx?updateid=");
         superseded_by.push(SupersededByUpdate {
             title: title.to_string(),
@@ -828,9 +841,7 @@ fn get_update_supercedes_updates(document: &Html) -> Result<Vec<SupersedesUpdate
         .map_err(|e| Error::ParseError(e.to_string()))?;
     let mut supersedes = vec![];
     for row in document.select(&selector) {
-        let title = clean_string_with_newlines(
-            get_element_text(&row)?
-        );
+        let title = clean_string_with_newlines(get_element_text(&row)?);
         supersedes.push(SupersedesUpdate {
             title: title.to_string(),
             kb: parse_kb_from_string(title)?,
@@ -839,7 +850,11 @@ fn get_update_supercedes_updates(document: &Html) -> Result<Vec<SupersedesUpdate
     Ok(supersedes)
 }
 
-fn get_search_row_selector(column: &SearchResColumn, update_id: &str, row_id: &str) -> Result<Selector, Error> {
+fn get_search_row_selector(
+    column: &SearchResColumn,
+    update_id: &str,
+    row_id: &str,
+) -> Result<Selector, Error> {
     let column_id = match column {
         SearchResColumn::Title => 1,
         SearchResColumn::Product => 2,
@@ -851,30 +866,37 @@ fn get_search_row_selector(column: &SearchResColumn, update_id: &str, row_id: &s
     // Need to split the first two characters of the update_id to get the valid selector
     let update_id_split = update_id.split_at(1);
     // If the first character is a number, we need to escape it based on its unicode value
-    if update_id_split.0
+    if update_id_split
+        .0
         .chars()
         .next()
         .ok_or(Error::ParseError("the update_id is empty".to_string()))?
-        .is_numeric() {
-        return Selector::parse(
-            &format!(r#"td#\3{} {}_C{}_R{}"#, update_id_split.0, update_id_split.1, column_id, row_id)
-        ).map_err(|e| Error::ParseError(e.to_string()));
+        .is_numeric()
+    {
+        return Selector::parse(&format!(
+            r#"td#\3{} {}_C{}_R{}"#,
+            update_id_split.0, update_id_split.1, column_id, row_id
+        ))
+            .map_err(|e| Error::ParseError(e.to_string()));
     }
-    Selector::parse(
-        &format!(r#"td#{}_C{}_R{}"#, update_id, column_id, row_id)
-    ).map_err(|e| Error::ParseError(e.to_string()))
+    Selector::parse(&format!(r#"td#{}_C{}_R{}"#, update_id, column_id, row_id))
+        .map_err(|e| Error::ParseError(e.to_string()))
 }
 
-fn get_search_row_text(element: &scraper::ElementRef, column: SearchResColumn, update_id: &str, row_id: &str) -> Result<String, Error> {
+fn get_search_row_text(
+    element: &scraper::ElementRef,
+    column: SearchResColumn,
+    update_id: &str,
+    row_id: &str,
+) -> Result<String, Error> {
     let selector = get_search_row_selector(&column, update_id, row_id)?;
     let t: String = element
         .select(&selector)
         .next()
-        .ok_or(
-            Error::ParseError(
-                format!("no result for id '{}', column '{:?}', row '{}' with given selector '{:?}'", update_id, &column, row_id, selector)
-            )
-        )?
+        .ok_or(Error::ParseError(format!(
+            "no result for id '{}', column '{:?}', row '{}' with given selector '{:?}'",
+            update_id, &column, row_id, selector
+        )))?
         .text()
         .collect();
     Ok(t.trim().to_string())
@@ -896,14 +918,18 @@ pub enum Error {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use chrono::NaiveDate;
     use url::Url;
-    use super::*;
     macro_rules! load_test_data {
-        ($fname:expr) => (
-            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/resources/test/", $fname))
+        ($fname:expr) => {
+            std::fs::read_to_string(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/resources/test/",
+                $fname
+            ))
             .expect(format!("Failed to load test data from {}", $fname).as_str())
-        )
+        };
     }
 
     #[test]
@@ -1111,12 +1137,10 @@ mod test {
 
     #[test]
     fn test_parse_hidden_error_search_results() {
-        let test_cases = [
-            (
-                load_test_data!("msuc_search_error_500.html"),
-                "msuc error: received 500 error from Microsoft Update Catalog, code: 8DDD0010"
-            )
-        ];
+        let test_cases = [(
+            load_test_data!("msuc_search_error_500.html"),
+            "msuc error: received 500 error from Microsoft Update Catalog, code: 8DDD0010",
+        )];
 
         for tc in test_cases.iter() {
             let results = parse_search_results(tc.0.as_str());
