@@ -91,7 +91,7 @@ async fn main() {
 }
 ```
 
-## Crate features
+## Crate Features
 
 The following crate features are available:
 
