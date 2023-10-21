@@ -1,9 +1,9 @@
 #[cfg(not(feature = "blocking"))]
 use async_trait::async_trait;
-#[cfg(not(feature = "blocking"))]
-use reqwest::RequestBuilder;
 #[cfg(feature = "blocking")]
 use reqwest::blocking::RequestBuilder;
+#[cfg(not(feature = "blocking"))]
+use reqwest::RequestBuilder;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::num::ParseIntError;
