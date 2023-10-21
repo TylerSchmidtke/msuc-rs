@@ -1,4 +1,4 @@
-use msuc::SearchResultsStreamer;
+use msuc::prelude::*;
 
 #[cfg(not(feature = "blocking"))]
 #[tokio::test]
@@ -21,7 +21,7 @@ async fn test_msuc_client_search_stream() {
         "9397a21f-246c-453b-ac05-65bf4fc6b68b",
         "e5df31a3-b8e5-4142-b643-8be79ad598f0",
     ];
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("ms08-067");
@@ -67,7 +67,7 @@ fn test_msuc_client_search_stream() {
         "9397a21f-246c-453b-ac05-65bf4fc6b68b",
         "e5df31a3-b8e5-4142-b643-8be79ad598f0",
     ];
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("ms08-067");
@@ -95,7 +95,7 @@ fn test_msuc_client_search_stream() {
 #[cfg(not(feature = "blocking"))]
 #[tokio::test]
 async fn test_msuc_client_search_stream_multiple_pages() {
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("2023-04");
@@ -125,7 +125,7 @@ async fn test_msuc_client_search_stream_multiple_pages() {
 #[cfg(feature = "blocking")]
 #[test]
 fn test_msuc_client_search_stream_multiple_pages() {
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("2023-04");
@@ -155,7 +155,7 @@ fn test_msuc_client_search_stream_multiple_pages() {
 #[cfg(not(feature = "blocking"))]
 #[tokio::test]
 async fn test_msuc_client_search_stream_too_many_results() {
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("cumulative");
@@ -180,7 +180,7 @@ async fn test_msuc_client_search_stream_too_many_results() {
 #[cfg(feature = "blocking")]
 #[test]
 fn test_msuc_client_search_stream_too_many_results() {
-    let client = msuc::Client::new();
+    let client = MsucClient::new();
     assert!(client.is_ok(), "Client creation failed");
     let client = client.unwrap();
     let stream = client.search("cumulative");
