@@ -95,7 +95,7 @@ async fn main() {
 
 The following crate features are available:
 
-- default: async/await support
-- blocking: blocking support
+- `default`: async/await support
+- `blocking`: blocking support
 
 > **Note**: The `blocking` feature is mutually exclusive with the `default` feature.
