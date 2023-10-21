@@ -249,7 +249,7 @@ impl Client {
         SearchResultsStream::new(SearchPageMeta::default(), query)
     }
 
-    /// `get_update_details` retrieves the update details for the given update id.
+    /// `get_update` retrieves the update details for the given update id.
     /// The update id can be found in the `id` field of the `Update` struct.
     ///
     /// # Parameters
@@ -266,7 +266,7 @@ impl Client {
     /// tokio_test::block_on(async {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
     ///    // MS08-067
-    ///     msuc_client.get_update_details("9397a21f-246c-453b-ac05-65bf4fc6b68b").await.expect("Failed to get update details");
+    ///     msuc_client.get_update("9397a21f-246c-453b-ac05-65bf4fc6b68b").await.expect("Failed to get update details");
     /// });
     /// ```
     ///
@@ -277,10 +277,10 @@ impl Client {
     /// {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
     ///     // MS08-067
-    ///     msuc_client.get_update_details("9397a21f-246c-453b-ac05-65bf4fc6b68b").expect("Failed to get update details");
+    ///     msuc_client.get_update("9397a21f-246c-453b-ac05-65bf4fc6b68b").expect("Failed to get update details");
     /// }
     #[cfg(not(feature = "blocking"))]
-    pub async fn get_update_details(&self, update_id: &str) -> Result<Update, Error> {
+    pub async fn get_update(&self, update_id: &str) -> Result<Update, Error> {
         let url = format!("{}{}", self.update_url, update_id);
         let resp = self
             .client
@@ -299,7 +299,7 @@ impl Client {
     }
 
     #[cfg(feature = "blocking")]
-    pub fn get_update_details(&self, update_id: &str) -> Result<Update, Error> {
+    pub fn get_update(&self, update_id: &str) -> Result<Update, Error> {
         let url = format!("{}{}", self.update_url, update_id);
         let resp = self
             .client

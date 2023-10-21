@@ -6,7 +6,7 @@ homepage = "https://github.com/TylerSchmidtke/msuc-rs"
 keywords = ["microsoft", "update", "catalog"]
 license = "MIT"
 readme = "README.md"
-version = "0.1.2"
+version = "1.0.0"
 edition = "2021"
 authors = ["Tyler Schmidtke <tyler@schmidtke.dev>"]
 exclude = [
@@ -30,6 +30,6 @@ tokio = { version = "1.33.0", features = ["macros", "tokio-macros"] }
 
 [features]
 default = [
-    "async-trait"
+    "dep:async-trait",
 ]
 blocking = ["reqwest/blocking"]

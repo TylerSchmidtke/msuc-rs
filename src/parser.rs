@@ -97,10 +97,7 @@ pub fn parse_update_details(html: &str) -> Result<Update, Error> {
     let u = Update {
         title: select_with_path(&document, "#ScopedViewHandler_titleText")?,
         id: select_with_path(&document, "#ScopedViewHandler_UpdateID")?,
-        kb: format!(
-            "KB{}",
-            clean_nested_div_text(select_with_path(&document, "div#kbDiv")?)?
-        ),
+        kb: clean_nested_div_text(select_with_path(&document, "div#kbDiv")?)?,
         classification: clean_nested_div_text(select_with_path(&document, "#classificationDiv")?)?,
         last_modified: parse_update_date(select_with_path(&document, "#ScopedViewHandler_date")?)?,
         size: parse_size_from_mb_string(select_with_path(&document, "#ScopedViewHandler_size")?)?,
@@ -279,19 +276,18 @@ fn parse_update_date(date: String) -> Result<chrono::NaiveDate, Error> {
 }
 
 fn parse_kb_from_string(s: String) -> Result<String, Error> {
-    Ok(format!(
-        "KB{}",
-        s.split("(KB")
-            .last()
-            .ok_or(Error::Parsing(
-                "Failed to find KB number in title".to_string()
-            ))?
-            .split(')')
-            .next()
-            .ok_or(Error::Parsing(
-                "Failed to parse KB number from title".to_string()
-            ))?
-    ))
+    Ok(s.split("(KB")
+        .last()
+        .ok_or(Error::Parsing(
+            "Failed to find KB number in title".to_string()
+        ))?
+        .split(')')
+        .next()
+        .ok_or(Error::Parsing(
+            "Failed to parse KB number from title".to_string()
+        ))?
+        .to_string()
+    )
 }
 
 fn parse_size_from_mb_string(s: String) -> Result<u64, Error> {
@@ -492,13 +488,13 @@ mod test {
                         page_size: 25,
                         page_count: 1,
                         result_count: 3,
-                    }
+                    },
                 },
                  vec![
                      SearchResult {
                          title: "Security Update For Exchange Server 2019 CU12 (KB5030524)".to_string(),
                          id: "56a97db8-1478-4860-a935-7996c78d10be".to_string(),
-                         kb: "KB5030524".to_string(),
+                         kb: "5030524".to_string(),
                          product: "Exchange Server 2019".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 8, 15).expect("Failed to parse date for test data"),
@@ -508,7 +504,7 @@ mod test {
                      SearchResult {
                          title: "Security Update For Exchange Server 2019 CU13 (KB5030524)".to_string(),
                          id: "70c08420-a012-4f5b-9b48-95a6b177d34a".to_string(),
-                         kb: "KB5030524".to_string(),
+                         kb: "5030524".to_string(),
                          product: "Exchange Server 2019".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 8, 15).expect("Failed to parse date for test data"),
@@ -518,7 +514,7 @@ mod test {
                      SearchResult {
                          title: "Security Update For Exchange Server 2016 CU23 (KB5030524)".to_string(),
                          id: "a08b526d-3947-4ddd-ba72-a8244b39c611".to_string(),
-                         kb: "KB5030524".to_string(),
+                         kb: "5030524".to_string(),
                          product: "Exchange Server 2016".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 8, 15).expect("Failed to parse date for test data"),
@@ -543,13 +539,13 @@ mod test {
                         page_size: 25,
                         page_count: 1,
                         result_count: 12,
-                    }
+                    },
                 },
                  vec![
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 21H2 for x64-based Systems (KB5030211)".to_string(),
                          id: "453112b9-83bb-403c-9263-018ffe515016".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 LTSB, Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -559,7 +555,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 21H2 for ARM64-based Systems (KB5030211)".to_string(),
                          id: "97fcb38d-dcb2-41e7-b75b-96327b676926".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -569,7 +565,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 21H2 for x64-based Systems (KB5030211)".to_string(),
                          id: "0aec0f4e-5228-4f59-bfc4-08e3c3cd32bb".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -579,7 +575,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 21H2 for ARM64-based Systems (KB5030211)".to_string(),
                          id: "c0e5f33a-0509-4891-9935-438d061b806e".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 LTSB, Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -589,7 +585,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 22H2 for ARM64-based Systems (KB5030211)".to_string(),
                          id: "cdf18eed-1b04-4211-87a0-d0e865ea16ba".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -599,7 +595,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 22H2 for ARM64-based Systems (KB5030211)".to_string(),
                          id: "7ef071f6-f25c-457a-bd10-d0dcfb149cd0".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -609,7 +605,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 22H2 for x86-based Systems (KB5030211)".to_string(),
                          id: "7969059c-6aad-4562-a40f-8c764af68e86".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -619,7 +615,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 21H2 for x86-based Systems (KB5030211)".to_string(),
                          id: "1e3b4e94-a544-4137-8fba-8ae1a2853a95".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 LTSB, Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -629,7 +625,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Cumulative Update for Windows 10 Version 22H2 for x64-based Systems (KB5030211)".to_string(),
                          id: "4aec4d66-a06c-4544-9f79-55ace822e015".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10,  version 1903 and later".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -639,7 +635,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 22H2 for x86-based Systems (KB5030211)".to_string(),
                          id: "403e7eb7-6022-4197-bf50-65aeca4ff368".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -649,7 +645,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 21H2 for x86-based Systems (KB5030211)".to_string(),
                          id: "590018dd-2c62-42b7-bd0b-e065f9283f36".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -659,7 +655,7 @@ mod test {
                      SearchResult {
                          title: "2023-09 Dynamic Cumulative Update for Windows 10 Version 22H2 for x64-based Systems (KB5030211)".to_string(),
                          id: "aaba42ce-ba39-4d0a-94af-0f51e68d5bfb".to_string(),
-                         kb: "KB5030211".to_string(),
+                         kb: "5030211".to_string(),
                          product: "Windows 10 and later GDR-DU".to_string(),
                          classification: "Security Updates".to_string(),
                          last_modified: NaiveDate::from_ymd_opt(2023, 9, 12).expect("Failed to parse date for test data"),
@@ -730,7 +726,7 @@ mod test {
                 page_size: 25,
                 page_count: 31,
                 result_count: 761,
-            }
+            },
         };
 
         let results = parse_search_results(data.as_str());
@@ -759,7 +755,7 @@ mod test {
                 page_size: 25,
                 page_count: 40,
                 result_count: 1000,
-            }
+            },
         };
 
         let results = parse_search_results(data.as_str());
@@ -780,7 +776,7 @@ mod test {
                 Update {
                     title: "2023-04 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5025305)".to_string(),
                     id: "1b0b70c0-191e-42f6-8808-c1b50deacb3b".to_string(),
-                    kb: "KB5025305".to_string(),
+                    kb: "5025305".to_string(),
                     classification: "Updates".to_string(),
                     last_modified: NaiveDate::from_ymd_opt(2023, 4, 25).expect("Failed to parse date for test data"),
                     size: 331559731,
@@ -801,117 +797,117 @@ mod test {
                     supersedes: vec![
                         SupersedesUpdate {
                             title: "2023-04 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5025239)".to_string(),
-                            kb: "KB5025239".to_string(),
+                            kb: "5025239".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-02 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5022913) UUP".to_string(),
-                            kb: "KB5022913".to_string(),
+                            kb: "5022913".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-03 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5023778)".to_string(),
-                            kb: "KB5023778".to_string(),
+                            kb: "5023778".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-09 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5017389)".to_string(),
-                            kb: "KB5017389".to_string(),
+                            kb: "5017389".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-10 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5018427)".to_string(),
-                            kb: "KB5018427".to_string(),
+                            kb: "5018427".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-10 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019509)".to_string(),
-                            kb: "KB5019509".to_string(),
+                            kb: "5019509".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-09 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5017321)".to_string(),
-                            kb: "KB5017321".to_string(),
+                            kb: "5017321".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-09 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019311)".to_string(),
-                            kb: "KB5019311".to_string(),
+                            kb: "5019311".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-11 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5019980)".to_string(),
-                            kb: "KB5019980".to_string(),
+                            kb: "5019980".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-01 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5022303)".to_string(),
-                            kb: "KB5022303".to_string(),
+                            kb: "5022303".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-01 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5022360)".to_string(),
-                            kb: "KB5022360".to_string(),
+                            kb: "5022360".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-11 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5020044)".to_string(),
-                            kb: "KB5020044".to_string(),
+                            kb: "5020044".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-02 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5022913)".to_string(),
-                            kb: "KB5022913".to_string(),
+                            kb: "5022913".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-10 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5018496)".to_string(),
-                            kb: "KB5018496".to_string(),
+                            kb: "5018496".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2022-12 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5021255)".to_string(),
-                            kb: "KB5021255".to_string(),
+                            kb: "5021255".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-02 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5022845)".to_string(),
-                            kb: "KB5022845".to_string(),
+                            kb: "5022845".to_string(),
                         },
                         SupersedesUpdate {
                             title: "2023-03 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5023706)".to_string(),
-                            kb: "KB5023706".to_string(),
+                            kb: "5023706".to_string(),
                         },
                     ],
                     superseded_by: vec![
                         SupersededByUpdate {
                             title: "2023-09 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5030219)".to_string(),
-                            kb: "KB5030219".to_string(),
+                            kb: "5030219".to_string(),
                             id: "03423c5a-458d-4cbe-b67e-d47bec7f3fb6".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-08 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5029263)".to_string(),
-                            kb: "KB5029263".to_string(),
+                            kb: "5029263".to_string(),
                             id: "10b0cdce-d084-452d-b6a3-318a3ade0a6e".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-08 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5029351)".to_string(),
-                            kb: "KB5029351".to_string(),
+                            kb: "5029351".to_string(),
                             id: "1a1ab822-a9e3-4a00-abd5-a4fafbf02982".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-07 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5028185)".to_string(),
-                            kb: "KB5028185".to_string(),
+                            kb: "5028185".to_string(),
                             id: "1f6417e4-a329-42c4-95e0-fa7d09bb6f90".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-05 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5026372)".to_string(),
-                            kb: "KB5026372".to_string(),
+                            kb: "5026372".to_string(),
                             id: "3cf3be77-f086-449f-8ba5-033f605c688a".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-07 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5028254)".to_string(),
-                            kb: "KB5028254".to_string(),
+                            kb: "5028254".to_string(),
                             id: "dbf7dc02-70ef-4476-b228-00a130a39ccd".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-06 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5027303)".to_string(),
-                            kb: "KB5027303".to_string(),
+                            kb: "5027303".to_string(),
                             id: "e0c1bca2-82c9-4eca-b0b2-5c5a507a683a".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-06 Cumulative Update for Windows 11 Version 22H2 for x64-based Systems (KB5027231)".to_string(),
-                            kb: "KB5027231".to_string(),
+                            kb: "5027231".to_string(),
                             id: "eac58b58-fb7d-4cd4-a78a-a39f87e0f232".to_string(),
                         },
                         SupersededByUpdate {
                             title: "2023-05 Cumulative Update Preview for Windows 11 Version 22H2 for x64-based Systems (KB5026446)".to_string(),
-                            kb: "KB5026446".to_string(),
+                            kb: "5026446".to_string(),
                             id: "ec3769c8-2cd5-4e89-a0a3-6e7830c38f6f".to_string(),
                         },
                     ],
@@ -922,7 +918,7 @@ mod test {
                 Update {
                     title: "Security Update For Exchange Server 2019 CU12 (KB5030524)".to_string(),
                     id: "56a97db8-1478-4860-a935-7996c78d10be".to_string(),
-                    kb: "KB5030524".to_string(),
+                    kb: "5030524".to_string(),
                     classification: "Security Updates".to_string(),
                     last_modified: NaiveDate::from_ymd_opt(2023, 8, 15).expect("Failed to parse date for test data"),
                     size: 168715878,
@@ -943,11 +939,11 @@ mod test {
                     supersedes: vec![
                         SupersedesUpdate {
                             title: "Security Update For Exchange Server 2019 CU12 (KB5026261)".to_string(),
-                            kb: "KB5026261".to_string(),
+                            kb: "5026261".to_string(),
                         },
                         SupersedesUpdate {
                             title: "Security Update For Exchange Server 2019 CU12 (KB5024296)".to_string(),
-                            kb: "KB5024296".to_string(),
+                            kb: "5024296".to_string(),
                         }],
                     superseded_by: vec![],
                 }
