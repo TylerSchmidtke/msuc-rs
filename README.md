@@ -9,8 +9,6 @@ the catalog and retrieve the details for specific updates.
 
 See the [docs.rs](https://docs.rs/msuc) page for documentation.
 
-# msuc-rs
-
 ## Usage
 
 This crate is [on crates.io](https://crates.io/crates/msuc) and can be
