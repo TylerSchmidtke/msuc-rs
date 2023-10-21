@@ -41,12 +41,11 @@ pub struct SearchPageMeta {
     pub event_validation: String,
     pub view_state: String,
     pub view_state_generator: String,
-    pub has_next_page: bool,
-    pub too_many_results: bool,
-    // TODO: add page count parsing
+    pub pagination: SearchPagePaginationMeta,
 }
 
 impl SearchPageMeta {
+    /// `as_map` returns a HashMap of the metadata values, excluding the pagination metadata.
     pub fn as_map(&self) -> HashMap<&str, &str> {
         let mut map = HashMap::new();
         map.insert("__EVENTTARGET", self.event_target.as_str());
@@ -56,6 +55,32 @@ impl SearchPageMeta {
         map.insert("__VIEWSTATEGENERATOR", self.view_state_generator.as_str());
 
         map
+    }
+}
+
+/// `SearchPagePaginationMeta` contains page count information for a SearchResultStream page.
+#[derive(Eq, PartialEq, Debug)]
+pub struct SearchPagePaginationMeta {
+    pub has_next_page: bool,
+    pub too_many_results: bool,
+    pub current_page: i16,
+    pub page_size: i16,
+    pub page_count: i16,
+    pub result_count: i16,
+}
+
+impl Default for SearchPagePaginationMeta {
+    /// `default` creates a new SearchPagePaginationMeta with all values set to 0
+    fn default() -> Self {
+        SearchPagePaginationMeta {
+            // has_next_page is set to true for the first page
+            has_next_page: true,
+            too_many_results: false,
+            current_page: 0,
+            page_size: 0,
+            page_count: 0,
+            result_count: 0,
+        }
     }
 }
 
@@ -69,8 +94,7 @@ impl Default for SearchPageMeta {
             event_validation: "".to_string(),
             view_state: "".to_string(),
             view_state_generator: "".to_string(),
-            has_next_page: true,
-            too_many_results: false,
+            pagination: SearchPagePaginationMeta::default(),
         }
     }
 }

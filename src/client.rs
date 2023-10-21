@@ -5,7 +5,7 @@ use reqwest::blocking::RequestBuilder;
 #[cfg(not(feature = "blocking"))]
 use reqwest::RequestBuilder;
 use url::Url;
-use crate::model::{Error, SearchPage, SearchPageMeta, SearchResult, Update};
+use crate::model::{Error, SearchPageMeta, SearchResult, Update};
 use crate::parser::{parse_search_results, parse_update_details};
 
 const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -37,18 +37,40 @@ impl SearchResultsStream {
         })
     }
 
-    /// `total_results` returns the total number of results for the search.
-    pub fn total_results(&self) -> usize {
-        0
+    /// `result_count` returns the total number of results for the search.
+    pub fn result_count(&self) -> i16 {
+        self.meta.pagination.result_count
+    }
+
+    /// `page_count` returns the total number of pages for the search.
+    pub fn page_count(&self) -> i16 {
+        self.meta.pagination.page_count
+    }
+
+    /// `current_page` returns the current page number for the search.
+    pub fn current_page(&self) -> i16 {
+        self.meta.pagination.current_page
     }
 
     /// `too_many_results` returns true if the search contains more than 1000 results which is the
     /// maximum number of results the Microsoft Update Catalog will return for a search.
     pub fn too_many_results(&self) -> bool {
-        self.meta.too_many_results
+        self.meta.pagination.too_many_results
     }
 
-    fn process_search_page(&mut self, page: Option<SearchPage>) -> Result<Option<Vec<SearchResult>>, Error> {
+    /// `has_next_page` returns true if there are more pages of results to retrieve.
+    pub fn has_next_page(&self) -> bool {
+        self.meta.pagination.has_next_page
+    }
+
+    fn process_search_page(&mut self, html: String) -> Result<Option<Vec<SearchResult>>, Error> {
+        let page = parse_search_results(&html).map_err(|e| {
+            self.meta.pagination.has_next_page = false;
+            Error::Search(format!(
+                "Failed to parse search results for {}: {:?}",
+                self.query, e
+            ))
+        })?;
         match page {
             Some(p) => {
                 self.meta.event_target = p.0.event_target;
@@ -56,12 +78,12 @@ impl SearchResultsStream {
                 self.meta.event_validation = p.0.event_validation;
                 self.meta.view_state = p.0.view_state;
                 self.meta.view_state_generator = p.0.view_state_generator;
-                self.meta.has_next_page = p.0.has_next_page;
-                self.meta.too_many_results = p.0.too_many_results;
+                self.meta.pagination.has_next_page = p.0.pagination.has_next_page;
+                self.meta.pagination.too_many_results = p.0.pagination.too_many_results;
                 Ok(Some(p.1))
             }
             None => {
-                self.meta.has_next_page = false;
+                self.meta.pagination.has_next_page = false;
                 Ok(None)
             }
         }
@@ -72,50 +94,28 @@ impl SearchResultsStream {
 #[async_trait]
 impl SearchResultsStreamer for SearchResultsStream {
     async fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
-        if !self.meta.has_next_page {
+        if !self.has_next_page() {
             return Ok(None);
         }
-
         let builder = self.client.get_search_builder(&self.query, &self.meta)?;
-
         let resp = builder.send().await.map_err(Error::Client)?;
-
         resp.error_for_status_ref()?;
         let html = resp.text().await.map_err(Error::Client)?;
-        let res_page = parse_search_results(&html).map_err(|e| {
-            self.meta.has_next_page = false;
-            Error::Search(format!(
-                "Failed to parse search results for {}: {:?}",
-                self.query, e
-            ))
-        })?;
-
-        self.process_search_page(res_page)
+        self.process_search_page(html)
     }
 }
 
 #[cfg(feature = "blocking")]
 impl SearchResultsStreamer for SearchResultsStream {
     fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
-        if !self.meta.has_next_page {
+        if !self.has_next_page() {
             return Ok(None);
         }
-
         let builder = self.client.get_search_builder(&self.query, &self.meta)?;
-
         let resp = builder.send().map_err(Error::Client)?;
-
         resp.error_for_status_ref()?;
         let html = resp.text().map_err(Error::Client)?;
-        let res_page = parse_search_results(&html).map_err(|e| {
-            self.meta.has_next_page = false;
-            Error::Search(format!(
-                "Failed to parse search results for {}: {:?}",
-                self.query, e
-            ))
-        })?;
-
-        self.process_search_page(res_page)
+        self.process_search_page(html)
     }
 }
 

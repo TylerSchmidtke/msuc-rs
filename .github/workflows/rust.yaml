@@ -26,7 +26,5 @@ jobs:
         run: cargo build --verbose
       - name: Clippy
         run: cargo clippy --verbose -- -D warnings
-      - name: Run Async Tests
-        run: cargo test --verbose
-      - name: Run Blocking Tests
-        run: cargo test --verbose --features blocking
+      - name: Run Tests
+        run: cargo test --verbose --all-features
