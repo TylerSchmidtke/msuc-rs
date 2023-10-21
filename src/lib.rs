@@ -25,6 +25,7 @@ pub struct SearchResult {
     pub size: u64,
 }
 
+/// `SearchPageMeta` is an internal state tracker for a SearchResultStream page.
 #[derive(Eq, PartialEq, Debug)]
 struct SearchPageMeta {
     event_target: String,
@@ -96,6 +97,7 @@ pub struct Update {
     pub superseded_by: Vec<SupersededByUpdate>,
 }
 
+/// `SupersededByUpdate` represents an update that supersedes the current update.
 #[derive(Eq, PartialEq, Debug)]
 pub struct SupersededByUpdate {
     pub title: String,
@@ -103,12 +105,14 @@ pub struct SupersededByUpdate {
     pub id: String,
 }
 
+/// `SupersedesUpdate` represents an update that the current update supersedes.
 #[derive(Eq, PartialEq, Debug)]
 pub struct SupersedesUpdate {
     pub title: String,
     pub kb: String,
 }
 
+/// `RebootBehavior` represents the reboot behavior of an update.
 #[derive(Eq, PartialEq, Debug)]
 pub enum RebootBehavior {
     Required,
@@ -118,8 +122,8 @@ pub enum RebootBehavior {
     NeverRestarts,
 }
 
-/// SearchResultsIterator represents an iterator over a collection of updates returned from a search.
-pub struct SearchResultsIterator {
+/// `SearchResultsStream` represents an stream of update pages returned from a search.
+pub struct SearchResultsStream {
     client: Client,
     query: String,
     meta: SearchPageMeta,
@@ -127,21 +131,18 @@ pub struct SearchResultsIterator {
 
 #[cfg(not(feature = "blocking"))]
 #[async_trait]
-pub trait SearchResultsStream {
-    async fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error>;
+pub trait SearchResultsStreamer {
+    async fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error>;
 }
 
 #[cfg(feature = "blocking")]
-pub trait SearchResultsStream {
-    fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error>;
+pub trait SearchResultsStreamer {
+    fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error>;
 }
 
-impl SearchResultsIterator {
+impl SearchResultsStream {
     fn new(meta: SearchPageMeta, query: &str) -> Result<Self, Error> {
-        Ok(SearchResultsIterator {
-            #[cfg(not(feature = "blocking"))]
-            client: Client::new()?,
-            #[cfg(feature = "blocking")]
+        Ok(SearchResultsStream {
             client: Client::new()?,
             query: query.to_string(),
             meta,
@@ -153,16 +154,36 @@ impl SearchResultsIterator {
         0
     }
 
-    /// `too_many_results` returns true if the search returned too many results.
+    /// `too_many_results` returns true if the search contains more than 1000 results which is the
+    /// maximum number of results the Microsoft Update Catalog will return for a search.
     pub fn too_many_results(&self) -> bool {
         self.meta.too_many_results
+    }
+
+    fn process_search_page(&mut self, page: Option<SearchPage>) -> Result<Option<Vec<SearchResult>>, Error> {
+        match page {
+            Some(p) => {
+                self.meta.event_target = p.0.event_target;
+                self.meta.event_argument = p.0.event_argument;
+                self.meta.event_validation = p.0.event_validation;
+                self.meta.view_state = p.0.view_state;
+                self.meta.view_state_generator = p.0.view_state_generator;
+                self.meta.has_next_page = p.0.has_next_page;
+                self.meta.too_many_results = p.0.too_many_results;
+                Ok(Some(p.1))
+            }
+            None => {
+                self.meta.has_next_page = false;
+                Ok(None)
+            }
+        }
     }
 }
 
 #[cfg(not(feature = "blocking"))]
 #[async_trait]
-impl SearchResultsStream for SearchResultsIterator {
-    async fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
+impl SearchResultsStreamer for SearchResultsStream {
+    async fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
         if !self.meta.has_next_page {
             return Ok(None);
         }
@@ -174,38 +195,20 @@ impl SearchResultsStream for SearchResultsIterator {
         resp.error_for_status_ref()?;
         let html = resp.text().await.map_err(Error::ClientError)?;
         let res_page = parse_search_results(&html).map_err(|e| {
+            self.meta.has_next_page = false;
             Error::SearchError(format!(
                 "Failed to parse search results for {}: {:?}",
                 self.query, e
             ))
-        });
+        })?;
 
-        match res_page {
-            Ok(Some(p)) => {
-                self.meta.event_target = p.0.event_target;
-                self.meta.event_argument = p.0.event_argument;
-                self.meta.event_validation = p.0.event_validation;
-                self.meta.view_state = p.0.view_state;
-                self.meta.view_state_generator = p.0.view_state_generator;
-                self.meta.has_next_page = p.0.has_next_page;
-                self.meta.too_many_results = p.0.too_many_results;
-                Ok(Some(p.1))
-            }
-            Ok(None) => {
-                self.meta.has_next_page = false;
-                Ok(None)
-            }
-            Err(e) => {
-                self.meta.has_next_page = false;
-                Err(e)
-            }
-        }
+        self.process_search_page(res_page)
     }
 }
 
 #[cfg(feature = "blocking")]
-impl SearchResultsStream for SearchResultsIterator {
-    fn stream(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
+impl SearchResultsStreamer for SearchResultsStream {
+    fn next(&mut self) -> Result<Option<Vec<SearchResult>>, Error> {
         if !self.meta.has_next_page {
             return Ok(None);
         }
@@ -217,32 +220,14 @@ impl SearchResultsStream for SearchResultsIterator {
         resp.error_for_status_ref()?;
         let html = resp.text().map_err(Error::ClientError)?;
         let res_page = parse_search_results(&html).map_err(|e| {
+            self.meta.has_next_page = false;
             Error::SearchError(format!(
                 "Failed to parse search results for {}: {:?}",
                 self.query, e
             ))
-        });
+        })?;
 
-        match res_page {
-            Ok(Some(p)) => {
-                self.meta.event_target = p.0.event_target;
-                self.meta.event_argument = p.0.event_argument;
-                self.meta.event_validation = p.0.event_validation;
-                self.meta.view_state = p.0.view_state;
-                self.meta.view_state_generator = p.0.view_state_generator;
-                self.meta.has_next_page = p.0.has_next_page;
-                self.meta.too_many_results = p.0.too_many_results;
-                Ok(Some(p.1))
-            }
-            Ok(None) => {
-                self.meta.has_next_page = false;
-                Ok(None)
-            }
-            Err(e) => {
-                self.meta.has_next_page = false;
-                Err(e)
-            }
-        }
+        self.process_search_page(res_page)
     }
 }
 
@@ -315,31 +300,26 @@ impl Client {
         }
     }
 
-    /// `get_search_iterator` returns an iterator to stream pages of search results from.
-    /// the Microsoft Update Catalog. Calling `stream` on the iterator will return a `Result`
-    pub fn get_search_iterator(&self, query: &str) -> Result<SearchResultsIterator, Error> {
-        SearchResultsIterator::new(SearchPageMeta::default(), query)
-    }
-
-    /// `_search` performs a search against the Microsoft Update Catalog, paginating
-    /// through all results.
+    /// `search` returns a stream to receive pages of search results from
+    /// the Microsoft Update Catalog. Calling `next` on the stream will return a `Result`
+    /// containing either a `Vec<SearchResult>` or `None` if there are no more pages.
     ///
     /// # Parameters
     ///
-    /// * `query` - The query string for the search
+    /// * `query` - The search query to use.
     ///
     /// # Example
     ///
     /// ```
-    /// use msuc::Client as MsucClient;
-    /// use msuc::SearchResultsStream;
+    /// use msuc::{Client as MsucClient, SearchResultsStreamer};
     /// use tokio_test;
     ///
+    /// #[cfg(not(feature = "blocking"))]
     /// tokio_test::block_on(async {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
-    ///     let mut iterator = msuc_client.get_search_iterator("MS08-067").expect("Failed to create search iterator");
+    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search iterator");
     ///     loop {
-    ///         match iterator.stream().await {
+    ///         match stream.next().await {
     ///             Ok(Some(sr)) => {
     ///                 for r in sr {
     ///                     println!("{}: {}", r.id, r.title);
@@ -352,80 +332,33 @@ impl Client {
     ///         }
     ///     }
     /// });
-    #[cfg(not(feature = "blocking"))]
-    async fn _search(&self, query: &str) -> Result<Option<Vec<SearchResult>>, Error> {
-        let mut results: Vec<SearchResult> = vec![];
-        let mut meta = SearchPageMeta::default();
-
-        loop {
-            let builder = self.get_search_builder(query, &meta)?;
-            let resp = builder.send().await.map_err(Error::ClientError)?;
-
-            resp.error_for_status_ref()?;
-            let html = resp.text().await.map_err(Error::ClientError)?;
-            let res_page = parse_search_results(&html).map_err(|e| {
-                Error::SearchError(format!(
-                    "Failed to parse search results for {}: {:?}",
-                    query, e
-                ))
-            })?;
-
-            match res_page {
-                Some(p) => {
-                    meta = p.0;
-                    results.extend(p.1);
-                    if !meta.has_next_page {
-                        break;
-                    }
-                }
-                None => {
-                    break;
-                }
-            }
-        }
-
-        if results.is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(results))
-    }
-
-    #[cfg(feature = "blocking")]
-    pub fn search(&self, query: &str) -> Result<Option<Vec<SearchResult>>, Error> {
-        let mut results: Vec<SearchResult> = vec![];
-        let mut meta = SearchPageMeta::default();
-
-        loop {
-            let builder = self.get_search_builder(query, &meta)?;
-            let resp = builder.send().map_err(Error::ClientError)?;
-
-            resp.error_for_status_ref()?;
-            let html = resp.text().map_err(Error::ClientError)?;
-            let res_page = parse_search_results(&html).map_err(|e| {
-                Error::SearchError(format!(
-                    "Failed to parse search results for {}: {:?}",
-                    query, e
-                ))
-            })?;
-
-            match res_page {
-                Some(p) => {
-                    meta = p.0;
-                    results.extend(p.1);
-                    if !meta.has_next_page {
-                        break;
-                    }
-                }
-                None => {
-                    break;
-                }
-            }
-        }
-
-        if results.is_empty() {
-            return Ok(None);
-        }
-        Ok(Some(results))
+    /// ```
+    ///
+    /// ```
+    /// use msuc::{Client as MsucClient, SearchResultsStreamer};
+    /// use tokio_test;
+    ///
+    /// #[cfg(feature = "blocking")]
+    /// {
+    ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
+    ///     let mut stream = msuc_client.search("MS08-067").expect("Failed to create search iterator");
+    ///     loop {
+    ///         match stream.next() {
+    ///             Ok(Some(sr)) => {
+    ///                 for r in sr {
+    ///                     println!("{}: {}", r.id, r.title);
+    ///                 }
+    ///             }
+    ///             Ok(None) => break,
+    ///             Err(e) => {
+    ///                 println!("Error: {:?}", e);
+    ///             }
+    ///         }
+    ///     }
+    /// };
+    /// ```
+    pub fn search(&self, query: &str) -> Result<SearchResultsStream, Error> {
+        SearchResultsStream::new(SearchPageMeta::default(), query)
     }
 
     /// `get_update_details` retrieves the update details for the given update id.
@@ -441,12 +374,23 @@ impl Client {
     /// use msuc::Client as MsucClient;
     /// use tokio_test;
     ///
+    /// #[cfg(not(feature = "blocking"))]
     /// tokio_test::block_on(async {
     ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
     ///    // MS08-067
     ///     msuc_client.get_update_details("9397a21f-246c-453b-ac05-65bf4fc6b68b").await.expect("Failed to get update details");
     /// });
     /// ```
+    ///
+    /// ```
+    /// use msuc::Client as MsucClient;
+    ///
+    /// #[cfg(feature = "blocking")]
+    /// {
+    ///     let msuc_client = MsucClient::new().expect("Failed to create MSUC client");
+    ///     // MS08-067
+    ///     msuc_client.get_update_details("9397a21f-246c-453b-ac05-65bf4fc6b68b").expect("Failed to get update details");
+    /// }
     #[cfg(not(feature = "blocking"))]
     pub async fn get_update_details(&self, update_id: &str) -> Result<Update, Error> {
         let url = format!("{}{}", self.update_url, update_id);
@@ -478,7 +422,7 @@ impl Client {
         let html = resp.text().map_err(Error::ClientError)?;
         parse_update_details(&html).map_err(|e| {
             Error::SearchError(format!(
-                "Failed to parse update details for {}: {}",
+                "Failed to parse update details for {}: {:?}",
                 update_id, e
             ))
         })
@@ -902,6 +846,7 @@ fn get_search_row_text(
     Ok(t.trim().to_string())
 }
 
+/// `Error` represents an error that can occur while using the MSUC client.
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("reqwest error: {0}")]
